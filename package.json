@@ -11,6 +11,7 @@
     "dev:client": "npm run dev --workspace=client",
     "build:server": "npm run build --workspace=server",
     "build:client": "npm run build --workspace=client",
+    "build:wgt": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tizen-app/build-wgt.ps1",
     "build": "npm run build --workspace=server && npm run build --workspace=client"
   }
 }
