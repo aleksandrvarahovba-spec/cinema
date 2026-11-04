@@ -26,7 +26,8 @@ import {
 
 interface VideoPlayerProps {
   media: MediaItem;
-  initialStreamUrl: string;
+  initialStreamUrl?: string;
+  embedUrl?: string;
   initialQualities: StreamQuality[];
   translations: StreamTranslation[];
   selectedTranslation: StreamTranslation;
@@ -39,7 +40,8 @@ interface VideoPlayerProps {
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   media,
-  initialStreamUrl,
+  initialStreamUrl = '',
+  embedUrl,
   initialQualities,
   translations,
   selectedTranslation,
@@ -51,6 +53,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
+
+  const [currentEmbedUrl, setCurrentEmbedUrl] = useState<string | null>(() => {
+    return selectedTranslation.embedUrl || embedUrl || (initialStreamUrl && !initialStreamUrl.includes('.m3u8') && !initialStreamUrl.includes('.mp4') ? initialStreamUrl : null);
+  });
 
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [currentTime, setCurrentTime] = useState<number>(initialTime);
@@ -172,12 +178,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   // Initial stream load
   useEffect(() => {
-    const streamToLoad =
-      qualities.find((q) => q.quality === activeQuality)?.proxiedUrl ||
-      qualities.find((q) => q.quality === activeQuality)?.url ||
-      initialStreamUrl;
+    if (!currentEmbedUrl) {
+      const streamToLoad =
+        qualities.find((q) => q.quality === activeQuality)?.proxiedUrl ||
+        qualities.find((q) => q.quality === activeQuality)?.url ||
+        initialStreamUrl;
 
-    loadStream(streamToLoad, initialTime);
+      if (streamToLoad) {
+        loadStream(streamToLoad, initialTime);
+      }
+    }
     resetOsdTimer();
 
     return () => {
@@ -256,9 +266,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       return;
     }
 
+    setActiveTranslation(translation);
+
+    // If this translation is an embed balancer player
+    if (translation.embedUrl) {
+      let finalUrl = translation.embedUrl;
+      if (media.type === 'tv' && currentSeason && currentEpisode) {
+        const cleanUrl = finalUrl.split('?')[0];
+        const audioMatch = finalUrl.match(/[?&]audio=([^&]+)/);
+        const audioQuery = audioMatch ? `&audio=${audioMatch[1]}` : '';
+        finalUrl = `${cleanUrl}?season=${currentSeason}&episode=${currentEpisode.episode}${audioQuery}`;
+      }
+      setCurrentEmbedUrl(finalUrl);
+      setShowSettings(false);
+      resetOsdTimer();
+      return;
+    }
+
+    setCurrentEmbedUrl(null);
     setIsLoading(true);
     const time = videoRef.current?.currentTime || 0;
-    setActiveTranslation(translation);
 
     // If this translation has embedded qualities (e.g. from Collaps)
     if (translation.qualities && translation.qualities.length > 0) {
@@ -502,17 +529,78 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden select-none">
-      {/* HTML5 Video Element */}
-      <video
-        ref={videoRef}
-        className="w-full h-full object-contain"
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={handleEnded}
-        onWaiting={() => setIsLoading(true)}
-        onPlaying={() => setIsLoading(false)}
-        playsInline
-      />
+      {currentEmbedUrl ? (
+        <div className="relative w-full h-full bg-black flex flex-col">
+          {/* Top Liquid Glass Navigation Header */}
+          <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between p-6 lg:p-8 bg-gradient-to-b from-black/95 via-black/50 to-transparent pointer-events-auto">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onClose}
+                className="liquid-glass-btn btn-spring flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-white text-sm font-bold shadow-xl cursor-pointer"
+              >
+                <ArrowLeft size={18} />
+                <span>Назад (ESC)</span>
+              </button>
+              <div>
+                <h2 className="text-xl font-black text-white drop-shadow-md">{media.title}</h2>
+                <div className="flex items-center gap-2.5 mt-1">
+                  <span className="liquid-glass px-3 py-1 rounded-xl text-tv-cyan font-bold text-xs border border-tv-cyan/30">
+                    {activeTranslation.name}
+                  </span>
+                  {currentSeason && currentEpisode && (
+                    <span className="liquid-glass-accent px-2.5 py-0.5 rounded-lg text-black font-black text-xs">
+                      S{currentSeason} • E{currentEpisode.episode}
+                    </span>
+                  )}
+                  <span className="liquid-glass px-2.5 py-0.5 rounded-lg text-yellow-300 font-black text-xs border border-yellow-400/30">
+                    Full HD 1080p
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Source Switcher Carousel */}
+            {translations.length > 1 && (
+              <div className="liquid-glass p-1.5 rounded-2xl flex items-center gap-2 border border-white/10 max-w-xl overflow-x-auto scrollbar-none">
+                {translations.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleTranslationSelect(t)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-spring cursor-pointer ${
+                      t.id === activeTranslation.id
+                        ? 'liquid-glass-accent text-black font-black shadow-lg scale-102'
+                        : 'liquid-glass-btn text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Clean Fullscreen Responsive Iframe */}
+          <iframe
+            key={currentEmbedUrl}
+            src={currentEmbedUrl}
+            className="w-full h-full border-0 flex-1"
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <>
+          {/* HTML5 Video Element */}
+          <video
+            ref={videoRef}
+            className="w-full h-full object-contain"
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            onEnded={handleEnded}
+            onWaiting={() => setIsLoading(true)}
+            onPlaying={() => setIsLoading(false)}
+            playsInline
+          />
 
       {/* Loading Spinner */}
       {isLoading && (
@@ -785,6 +873,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

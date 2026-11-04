@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bookmark, BookmarkCheck, Check, Play, Sparkles, X } from 'lucide-react';
+import { AlertCircle, Bookmark, BookmarkCheck, Check, Play, Sparkles, X } from 'lucide-react';
 import { TVButton } from '../components/TVButton.js';
 import { isBackKey } from '../navigation/tizenKeys.js';
 import {
@@ -26,6 +26,7 @@ interface DetailsPageProps {
   onPlay: (params: {
     media: MediaItem;
     streamUrl: string;
+    embedUrl?: string;
     qualities: StreamQuality[];
     translations: StreamTranslation[];
     selectedTranslation: StreamTranslation;
@@ -56,6 +57,14 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isExtracting, setIsExtracting] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 3800);
+  };
 
   // Trigger modal slide-in animation
   useEffect(() => {
@@ -97,6 +106,7 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
           imdbId: item.imdbId,
           kinopoiskId: item.kinopoiskId,
           type: item.type,
+          mediaItem: item,
         });
 
         setExtractions(ext);
@@ -105,8 +115,18 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
           const defaultTrans = ext.translations[0];
           setSelectedTranslation(defaultTrans);
 
-          if (item.type === 'tv' && defaultTrans.seasons) {
+          if (item.type === 'tv' && defaultTrans.seasons && defaultTrans.seasons.length > 0) {
             setSeasonsData(defaultTrans.seasons);
+          } else if (item.type === 'tv' && item.seasons && item.seasons.length > 0) {
+            const fallbackSeasons: StreamSeason[] = item.seasons.map((s) => ({
+              season: s.seasonNumber,
+              episodes: Array.from({ length: s.episodeCount || 10 }, (_, i) => ({
+                id: `${s.seasonNumber}_${i + 1}`,
+                episode: i + 1,
+                title: `Серия ${i + 1}`,
+              })),
+            }));
+            setSeasonsData(fallbackSeasons);
           }
         }
       } catch (err) {
@@ -134,12 +154,14 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
           trans.id,
           trans.rawMeta?.movieId || trans.id
         );
-        setSeasonsData(seasons);
+        if (seasons && seasons.length > 0) {
+          setSeasonsData(seasons);
+        }
       }
     }
   };
 
-  // Launch Player with real streams
+  // Launch Player with real streams or embed players
   const startWatching = async (seasonNum?: number, episodeObj?: StreamEpisode) => {
     if (!details) return;
 
@@ -147,7 +169,7 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
     const epObj =
       episodeObj ||
       seasonsData.find((s) => s.season === sNum)?.episodes[0] || {
-        id: '1_1',
+        id: `${sNum}_1`,
         episode: savedProgress?.episode || 1,
       };
 
@@ -157,8 +179,17 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
     }
 
     if (!activeTrans) {
-      alert('Источники видео для данного фильма пока не найдены.');
+      showToast('Поиск доступных источников... Пожалуйста, подождите пару секунд.');
       return;
+    }
+
+    // Build embedUrl with season & episode if TV series
+    let embedUrl = activeTrans.embedUrl;
+    if (embedUrl && details.type === 'tv') {
+      const cleanUrl = embedUrl.split('?')[0];
+      const audioMatch = embedUrl.match(/[?&]audio=([^&]+)/);
+      const audioQuery = audioMatch ? `&audio=${audioMatch[1]}` : '';
+      embedUrl = `${cleanUrl}?season=${sNum}&episode=${epObj.episode}${audioQuery}`;
     }
 
     let qualities: StreamQuality[] = [];
@@ -167,7 +198,7 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
       qualities = activeTrans.qualities;
     } else if (details.type === 'tv' && epObj.qualities && epObj.qualities.length > 0) {
       qualities = epObj.qualities;
-    } else {
+    } else if (!embedUrl) {
       try {
         qualities = await getStreamQualities({
           provider: activeTrans.provider,
@@ -181,22 +212,18 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
       }
     }
 
-    if (!qualities || qualities.length === 0) {
-      alert('Видеопоток временно недоступен в данной озвучке. Пожалуйста, выберите другую озвучку.');
-      return;
-    }
-
     const defaultQuality =
       qualities.find((q) => q.quality === '1080p') ||
       qualities.find((q) => q.quality === '720p') ||
       qualities[0];
 
-    const streamUrl = defaultQuality.proxiedUrl || defaultQuality.url;
+    const streamUrl = defaultQuality?.proxiedUrl || defaultQuality?.url || embedUrl || '';
     const resumeTime = savedProgress?.currentTime || 0;
 
     onPlay({
       media: details,
       streamUrl,
+      embedUrl,
       qualities,
       translations:
         extractions && extractions.translations.length > 0
@@ -224,6 +251,21 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
         isMounted ? 'opacity-100' : 'opacity-0'
       }`}
     >
+      {/* Liquid Glass Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 animate-fadeIn pointer-events-auto">
+          <div className="liquid-glass px-6 py-3.5 rounded-2xl border border-white/20 shadow-liquidGlass flex items-center gap-3 text-white text-sm font-bold backdrop-blur-2xl">
+            <AlertCircle className="text-tv-cyan flex-shrink-0" size={20} />
+            <span>{toastMessage}</span>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="ml-2 text-gray-400 hover:text-white cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Modal Container in Liquid Glass */}
       <div
         onClick={(e) => e.stopPropagation()}

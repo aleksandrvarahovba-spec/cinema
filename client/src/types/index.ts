@@ -56,6 +56,7 @@ export interface StreamTranslation {
   name: string;
   provider: string;
   isCamRip?: boolean;
+  embedUrl?: string;
   seasons?: StreamSeason[];
   qualities?: StreamQuality[];
   rawMeta?: Record<string, any>;

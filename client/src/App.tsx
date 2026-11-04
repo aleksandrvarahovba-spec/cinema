@@ -19,6 +19,7 @@ import {
 interface ActivePlayerState {
   media: MediaItem;
   streamUrl: string;
+  embedUrl?: string;
   qualities: StreamQuality[];
   translations: StreamTranslation[];
   selectedTranslation: StreamTranslation;
@@ -71,6 +72,7 @@ export const App: React.FC = () => {
         imdbId: item.imdbId,
         kinopoiskId: item.kinopoiskId,
         type: item.type,
+        mediaItem: item,
       });
 
       if (!ext || !ext.translations || ext.translations.length === 0) {
@@ -80,6 +82,19 @@ export const App: React.FC = () => {
 
       const translations = ext.translations;
       const defaultTrans = translations[0];
+
+      if (defaultTrans.embedUrl) {
+        setPlayerState({
+          media: item,
+          streamUrl: defaultTrans.embedUrl,
+          embedUrl: defaultTrans.embedUrl,
+          qualities: defaultTrans.qualities || [],
+          translations,
+          selectedTranslation: defaultTrans,
+          initialTime: resumeTime,
+        });
+        return;
+      }
 
       let qualities: StreamQuality[] = [];
       if (item.type === 'movie' && defaultTrans.qualities && defaultTrans.qualities.length > 0) {
@@ -225,6 +240,7 @@ export const App: React.FC = () => {
         <VideoPlayer
           media={playerState.media}
           initialStreamUrl={playerState.streamUrl}
+          embedUrl={playerState.embedUrl}
           initialQualities={playerState.qualities}
           translations={playerState.translations}
           selectedTranslation={playerState.selectedTranslation}
