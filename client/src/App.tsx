@@ -1,0 +1,244 @@
+import React, { useEffect, useState } from 'react';
+import { Sidebar } from './components/Sidebar.js';
+import { VideoPlayer } from './components/VideoPlayer/VideoPlayer.js';
+import { isBackKey, registerTizenKeys } from './navigation/tizenKeys.js';
+import { CatalogPage } from './pages/CatalogPage.js';
+import { DetailsPage } from './pages/DetailsPage.js';
+import { HistoryPage } from './pages/HistoryPage.js';
+import { HomePage } from './pages/HomePage.js';
+import { SearchPage } from './pages/SearchPage.js';
+import { extractStreams, getStreamQualities } from './services/api.js';
+import {
+  MediaItem,
+  ScreenType,
+  StreamEpisode,
+  StreamQuality,
+  StreamTranslation,
+} from './types/index.js';
+
+interface ActivePlayerState {
+  media: MediaItem;
+  streamUrl: string;
+  qualities: StreamQuality[];
+  translations: StreamTranslation[];
+  selectedTranslation: StreamTranslation;
+  currentSeason?: number;
+  currentEpisode?: StreamEpisode;
+  initialTime?: number;
+}
+
+export const App: React.FC = () => {
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
+  const [activeMedia, setActiveMedia] = useState<MediaItem | null>(null);
+  const [playerState, setPlayerState] = useState<ActivePlayerState | null>(null);
+
+  // Initialize hardware keys for Samsung Tizen OS
+  useEffect(() => {
+    registerTizenKeys();
+  }, []);
+
+  // Global Return / Back Button Handler
+  useEffect(() => {
+    const handleGlobalBack = (e: KeyboardEvent) => {
+      if (isBackKey(e)) {
+        // If player is open, player handles its own back key
+        if (playerState) return;
+
+        e.preventDefault();
+
+        if (activeMedia) {
+          setActiveMedia(null);
+        } else if (currentScreen !== 'home') {
+          setCurrentScreen('home');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalBack);
+    return () => window.removeEventListener('keydown', handleGlobalBack);
+  }, [playerState, activeMedia, currentScreen]);
+
+  const handleSelectMedia = (item: MediaItem) => {
+    setActiveMedia(item);
+  };
+
+  const handlePlayDirect = async (item: MediaItem, resumeTime = 0) => {
+    try {
+      const ext = await extractStreams({
+        title: item.title,
+        originalTitle: item.originalTitle,
+        year: item.year || undefined,
+        imdbId: item.imdbId,
+        kinopoiskId: item.kinopoiskId,
+        type: item.type,
+      });
+
+      if (!ext || !ext.translations || ext.translations.length === 0) {
+        setActiveMedia(item);
+        return;
+      }
+
+      const translations = ext.translations;
+      const defaultTrans = translations[0];
+
+      let qualities: StreamQuality[] = [];
+      if (item.type === 'movie' && defaultTrans.qualities && defaultTrans.qualities.length > 0) {
+        qualities = defaultTrans.qualities;
+      } else {
+        try {
+          qualities = await getStreamQualities({
+            provider: defaultTrans.provider,
+            translatorId: defaultTrans.id,
+            mediaId: defaultTrans.rawMeta?.movieId || defaultTrans.id,
+          });
+        } catch (err) {
+          console.warn('Direct stream fetch failed:', err);
+        }
+      }
+
+      if (!qualities || qualities.length === 0) {
+        setActiveMedia(item);
+        return;
+      }
+
+      const matchQ =
+        qualities.find((q: StreamQuality) => q.quality === '1080p') ||
+        qualities.find((q: StreamQuality) => q.quality === '720p') ||
+        qualities[0];
+
+      setPlayerState({
+        media: item,
+        streamUrl: matchQ.proxiedUrl || matchQ.url,
+        qualities,
+        translations,
+        selectedTranslation: defaultTrans,
+        initialTime: resumeTime,
+      });
+    } catch (err) {
+      console.error('Failed to direct play, opening details modal:', err);
+      setActiveMedia(item);
+    }
+  };
+
+  const handleNextEpisode = async () => {
+    if (!playerState || !playerState.currentEpisode || !playerState.currentSeason) return;
+
+    const nextEpNum = playerState.currentEpisode.episode + 1;
+    const translation = playerState.selectedTranslation;
+
+    let newQualities: StreamQuality[] = [];
+    try {
+      newQualities = await getStreamQualities({
+        provider: translation.provider,
+        translatorId: translation.id,
+        mediaId: translation.rawMeta?.movieId || translation.id,
+        season: playerState.currentSeason,
+        episode: nextEpNum,
+      });
+    } catch (err) {
+      console.warn('Failed to load next episode stream:', err);
+    }
+
+    if (!newQualities || newQualities.length === 0) return;
+
+    const matchQ =
+      newQualities.find((q: StreamQuality) => q.quality === '1080p') ||
+      newQualities.find((q: StreamQuality) => q.quality === '720p') ||
+      newQualities[0];
+
+    setPlayerState({
+      ...playerState,
+      streamUrl: matchQ.proxiedUrl || matchQ.url,
+      qualities: newQualities,
+      currentEpisode: {
+        id: `${playerState.currentSeason}_${nextEpNum}`,
+        episode: nextEpNum,
+        title: `Серия ${nextEpNum}`,
+      },
+      initialTime: 0,
+    });
+  };
+
+  return (
+    <div className="relative flex w-screen h-screen overflow-hidden bg-[#06090e] text-white font-tv select-none">
+      {/* Dynamic Atmospheric Ambient Background (Fluid Glow Orbs for Liquid Glass Refraction) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        {/* Deep Cyan Orb */}
+        <div className="absolute -top-[10%] left-[20%] w-[600px] h-[600px] rounded-full bg-cyan-600/15 blur-[140px] animate-orb1" />
+        {/* Violet / Indigo Orb */}
+        <div className="absolute top-[40%] right-[10%] w-[700px] h-[700px] rounded-full bg-violet-600/15 blur-[160px] animate-orb2" />
+        {/* Deep Blue / Fuchsia Orb */}
+        <div className="absolute -bottom-[10%] left-[30%] w-[650px] h-[650px] rounded-full bg-blue-700/15 blur-[150px] animate-orb3" />
+        {/* Fine Grain / Vignette Overlay */}
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/40 to-black/80" />
+      </div>
+
+      {/* Sidebar Navigation: 280px Liquid Glass, NEVER overlaps main content */}
+      <Sidebar
+        currentScreen={currentScreen}
+        onNavigate={(screen) => {
+          setActiveMedia(null);
+          setCurrentScreen(screen);
+        }}
+      />
+
+      {/* Main Content Area: Independent scroll with screen transition animation */}
+      <main
+        key={currentScreen}
+        className="flex-1 h-full overflow-y-auto px-12 py-9 min-w-0 scrollbar-none relative z-10 screen-transition"
+      >
+        {currentScreen === 'home' && (
+          <HomePage
+            onSelectMedia={handleSelectMedia}
+            onPlayDirect={handlePlayDirect}
+          />
+        )}
+        {currentScreen === 'movies' && (
+          <CatalogPage type="movie" onSelectMedia={handleSelectMedia} />
+        )}
+        {currentScreen === 'tv' && (
+          <CatalogPage type="tv" onSelectMedia={handleSelectMedia} />
+        )}
+        {currentScreen === 'search' && (
+          <SearchPage onSelectMedia={handleSelectMedia} />
+        )}
+        {currentScreen === 'history' && (
+          <HistoryPage
+            onPlayDirect={handlePlayDirect}
+            onSelectMedia={handleSelectMedia}
+          />
+        )}
+      </main>
+
+      {/* Animated Modal Details View */}
+      {activeMedia && (
+        <DetailsPage
+          mediaId={activeMedia.id}
+          mediaType={activeMedia.type}
+          onPlay={(params) => setPlayerState(params)}
+          onBack={() => setActiveMedia(null)}
+        />
+      )}
+
+      {/* Fullscreen Video Player */}
+      {playerState && (
+        <VideoPlayer
+          media={playerState.media}
+          initialStreamUrl={playerState.streamUrl}
+          initialQualities={playerState.qualities}
+          translations={playerState.translations}
+          selectedTranslation={playerState.selectedTranslation}
+          currentSeason={playerState.currentSeason}
+          currentEpisode={playerState.currentEpisode}
+          initialTime={playerState.initialTime}
+          onClose={() => setPlayerState(null)}
+          onNextEpisode={
+            playerState.currentEpisode && playerState.currentSeason
+              ? handleNextEpisode
+              : undefined
+          }
+        />
+      )}
+    </div>
+  );
+};

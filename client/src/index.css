@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* Scrollbar hiding */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Apple Liquid Glass Surface (Panels, Sidebar, Modals) */
+  .liquid-glass {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 20px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Liquid Glass Card (Movie Posters & Grid items) */
+  .liquid-glass-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 15px 35px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Liquid Glass Interactive Button */
+  .liquid-glass-btn {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Liquid Glass Active State (Selected Item, Neon Cyan Glow) */
+  .liquid-glass-active {
+    background: linear-gradient(135deg, rgba(0, 209, 255, 0.32) 0%, rgba(0, 209, 255, 0.12) 100%);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border: 1px solid rgba(0, 209, 255, 0.65);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), 0 0 25px rgba(0, 209, 255, 0.45);
+  }
+
+  /* Liquid Glass Accent Red (Watch Button) */
+  .liquid-glass-accent {
+    background: linear-gradient(135deg, rgba(229, 9, 20, 0.9) 0%, rgba(180, 5, 14, 0.75) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 100, 100, 0.45);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 12px 30px rgba(229, 9, 20, 0.45);
+  }
+
+  /* Liquid Glass Shimmer Bar */
+  .shimmer-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer-sweep::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    transform: skewX(-20deg);
+    animation: shimmer 4s infinite ease-in-out;
+    pointer-events: none;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #06090e;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Allow mouse interaction during desktop testing */
+@media (hover: hover) and (pointer: fine) {
+  html, body, #root {
+    cursor: default !important;
+  }
+  button, [tabindex], [role="button"], a {
+    cursor: pointer !important;
+  }
+}
+
+/* Screen Transition Animation */
+@keyframes screenSlideFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.985) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.screen-transition {
+  animation: screenSlideFade 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered Card Entrance Animation */
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stagger-card {
+  animation: cardEntrance 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--stagger-idx, 0) * 0.04s);
+}
+
+/* Ken Burns Atmospheric Backdrop Animation */
+@keyframes kenBurnsBackdrop {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.08) translate(-10px, -5px);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+.ken-burns {
+  animation: kenBurnsBackdrop 30s ease-in-out infinite alternate;
+}
+
+/* Spring Button Tap Micro-interaction */
+.btn-spring {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background 0.25s ease;
+}
+.btn-spring:active {
+  transform: scale(0.94) !important;
+}

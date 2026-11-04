@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" 
+        xmlns:tizen="http://tizen.org/ns/widgets" 
+        id="http://varahovba.cinema/VarahovbaCinema" 
+        version="2.0.0" 
+        viewmodes="maximized">
+    <tizen:application id="v8rBw4mQ3z.VarahovbaCinema" 
+                       exec="index.html" 
+                       entry="index.html" 
+                       type="capp" 
+                       package="v8rBw4mQ3z" 
+                       screen-orientation="landscape" 
+                       required_version="3.0"/>
+    <name>VARAHOVBA CINEMA</name>
+    <description>VARAHOVBA CINEMA • Smart TV 4K Ultra HD for Samsung Tizen OS</description>
+    <icon src="icon.png"/>
+    
+    <!-- Privileges for Internet, Media and Remote Control -->
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
+    
+    <!-- Profile for Samsung Smart TV -->
+    <tizen:profile name="tv-samsung"/>
+    
+    <tizen:setting screen-orientation="landscape" 
+                   context-menu="disable" 
+                   background-support="disable" 
+                   encryption="disable" 
+                   install-location="auto"/>
+                   
+    <access origin="*" subdomains="true"/>
+</widget>

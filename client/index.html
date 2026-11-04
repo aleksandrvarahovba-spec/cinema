@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0, user-scalable=no" />
+    <title>VARAHOVBA CINEMA</title>
+    <!-- Tizen Webapis for Remote Control and Hardware Access -->
+    <script type="text/javascript" src="$WEBAPIS/webapis/webapis.js"></script>
+    <style>
+      /* Prevent scrolling on body, full 1080p TV layout */
+      html, body, #root {
+        width: 1920px;
+        height: 1080px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #06090e;
+        color: #ffffff;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      /* On TV without mouse pointer, default is clean cursor; in browser cursor is enabled via CSS media query */
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
