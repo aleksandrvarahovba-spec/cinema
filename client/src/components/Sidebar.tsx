@@ -79,7 +79,17 @@ const SidebarItem: React.FC<{
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate }) => {
   return (
-    <aside className="w-[280px] flex-shrink-0 h-full liquid-glass border-r border-white/10 flex flex-col justify-between py-8 px-5 z-20 select-none relative">
+    <aside
+      className="w-[280px] min-w-[280px] max-w-[280px] flex-shrink-0 h-full liquid-glass border-r border-white/10 flex flex-col justify-between py-8 px-5 z-20 select-none relative box-border"
+      style={{
+        width: '280px',
+        minWidth: '280px',
+        maxWidth: '280px',
+        flexShrink: 0,
+        height: '100%',
+        boxSizing: 'border-box',
+      }}
+    >
       {/* Subtle ambient light inside sidebar */}
       <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-cyan-500/10 via-transparent to-transparent pointer-events-none rounded-tl-3xl" />
 

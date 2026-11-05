@@ -309,9 +309,8 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          transition: 'all 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'opacity 0.25s ease-out',
           opacity: isMounted ? 1 : 0,
-          transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.92) translateY(30px)',
         }}
         className="w-full max-w-6xl max-h-[92vh] overflow-y-auto liquid-glass rounded-[32px] p-8 lg:p-10 shadow-2xl relative scrollbar-none flex flex-col gap-8 border border-white/20"
       >

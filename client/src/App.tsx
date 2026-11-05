@@ -181,15 +181,32 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="relative flex w-screen h-screen overflow-hidden bg-[#06090e] text-white font-tv select-none">
+    <div
+      className="relative flex w-full h-full overflow-hidden bg-[#06090e] text-white font-tv select-none"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: '100vw',
+        maxHeight: '100vh',
+        overflow: 'hidden',
+      }}
+    >
       {/* Dynamic Atmospheric Ambient Background (Fluid Glow Orbs for Liquid Glass Refraction) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div
+        className="absolute inset-0 overflow-hidden pointer-events-none z-0"
+        style={{ width: '100%', height: '100%', overflow: 'hidden', contain: 'strict' }}
+      >
         {/* Deep Cyan Orb */}
-        <div className="absolute -top-[10%] left-[20%] w-[600px] h-[600px] rounded-full bg-cyan-600/15 blur-[140px] animate-orb1" />
+        <div className="absolute top-0 left-[20%] w-[500px] h-[500px] rounded-full bg-cyan-600/15 blur-[120px]" />
         {/* Violet / Indigo Orb */}
-        <div className="absolute top-[40%] right-[10%] w-[700px] h-[700px] rounded-full bg-violet-600/15 blur-[160px] animate-orb2" />
+        <div className="absolute top-[40%] right-[10%] w-[500px] h-[500px] rounded-full bg-violet-600/15 blur-[130px]" />
         {/* Deep Blue / Fuchsia Orb */}
-        <div className="absolute -bottom-[10%] left-[30%] w-[650px] h-[650px] rounded-full bg-blue-700/15 blur-[150px] animate-orb3" />
+        <div className="absolute bottom-0 left-[30%] w-[500px] h-[500px] rounded-full bg-blue-700/15 blur-[120px]" />
         {/* Fine Grain / Vignette Overlay */}
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/40 to-black/80" />
       </div>
@@ -206,7 +223,14 @@ export const App: React.FC = () => {
       {/* Main Content Area: Independent scroll with screen transition animation */}
       <main
         key={currentScreen}
-        className="flex-1 h-full overflow-y-auto px-12 py-9 min-w-0 scrollbar-none relative z-10 screen-transition"
+        className="flex-1 h-full overflow-y-auto px-12 py-9 min-w-0 scrollbar-none relative z-10 screen-transition box-border"
+        style={{
+          flex: '1 1 0%',
+          height: '100%',
+          maxHeight: '100vh',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+        }}
       >
         {currentScreen === 'home' && (
           <HomePage

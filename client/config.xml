@@ -2,34 +2,34 @@
 <widget xmlns="http://www.w3.org/ns/widgets" 
         xmlns:tizen="http://tizen.org/ns/widgets" 
         id="http://varahovba.cinema/VarahovbaCinema" 
-        version="2.0.0" 
+        version="1.0.0" 
         viewmodes="maximized">
-    <tizen:application id="v8rBw4mQ3z.VarahovbaCinema" 
-                       exec="index.html" 
-                       entry="index.html" 
-                       type="capp" 
-                       package="v8rBw4mQ3z" 
-                       screen-orientation="landscape" 
+    <tizen:application id="varahovba0.VarahovbaCinema" 
+                       package="varahovba0" 
                        required_version="3.0"/>
-    <name>VARAHOVBA CINEMA</name>
-    <description>VARAHOVBA CINEMA • Smart TV 4K Ultra HD for Samsung Tizen OS</description>
+    <content src="index.html"/>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
     <icon src="icon.png"/>
+    <name>VARAHOVBA CINEMA</name>
+    <description>VARAHOVBA CINEMA - Smart TV 4K Ultra HD for Samsung Tizen OS 3.0</description>
     
-    <!-- Privileges for Internet, Media and Remote Control -->
+    <!-- Samsung Smart TV Profile -->
+    <tizen:profile name="tv-samsung"/>
+    
+    <!-- Privileges -->
     <tizen:privilege name="http://tizen.org/privilege/internet"/>
     <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
     <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
-    <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
-    <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
     
-    <!-- Profile for Samsung Smart TV -->
-    <tizen:profile name="tv-samsung"/>
-    
+    <!-- Settings for 1080p landscape fullscreen & remote control -->
     <tizen:setting screen-orientation="landscape" 
                    context-menu="disable" 
                    background-support="disable" 
                    encryption="disable" 
-                   install-location="auto"/>
+                   install-location="auto" 
+                   hwkey-event="enable"/>
                    
+    <!-- Full network access for video balancers, streams and posters -->
     <access origin="*" subdomains="true"/>
+    <tizen:allow-navigation>*</tizen:allow-navigation>
 </widget>
