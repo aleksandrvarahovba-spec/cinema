@@ -165,7 +165,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectMedia, onPlayDirect 
                       hist.currentTime
                     )
                   }
-                  className="stagger-card flex-shrink-0 w-64 liquid-glass-card rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 shadow-xl border border-white/10 hover:border-tv-cyan"
+                  className="stagger-card movie-card flex-shrink-0 w-64 rounded-[20px] overflow-hidden cursor-pointer hover:scale-[1.04] transition-all duration-300 shadow-xl border-2 border-white/10 hover:border-tv-cyan hover:shadow-[0_0_25px_rgba(0,210,255,0.45)]"
                 >
                   <div className="relative aspect-video bg-[#0a0f1d] overflow-hidden">
                     {hist.poster ? (

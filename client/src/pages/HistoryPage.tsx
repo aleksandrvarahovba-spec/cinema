@@ -76,7 +76,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     year: null,
                   })
                 }
-                className="stagger-card group relative liquid-glass-card rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.04] transition-all duration-300 shadow-2xl border border-white/15 hover:border-tv-cyan"
+                className="stagger-card movie-card group relative rounded-[20px] overflow-hidden cursor-pointer hover:scale-[1.04] transition-all duration-300 shadow-xl border-2 border-white/10 hover:border-tv-cyan hover:shadow-[0_0_25px_rgba(0,210,255,0.45)]"
               >
                 {/* Poster / Thumbnail */}
                 <div className="relative aspect-video bg-[#0a0f1d] overflow-hidden">

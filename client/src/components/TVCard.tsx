@@ -55,16 +55,25 @@ export const TVCard: React.FC<TVCardProps> = ({
       style={
         {
           '--stagger-idx': staggerIndex,
+          WebkitBackfaceVisibility: 'hidden',
+          backfaceVisibility: 'hidden',
+          WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+          maskImage: 'radial-gradient(white, black)',
           transition:
-            'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease',
-          transform: isActive ? 'scale(1.07) translateY(-6px)' : 'scale(1) translateY(0)',
+            'transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease',
+          WebkitTransform: isActive
+            ? 'scale(1.06) translateY(-4px) translateZ(0)'
+            : 'scale(1) translateY(0) translateZ(0)',
+          transform: isActive
+            ? 'scale(1.06) translateY(-4px) translateZ(0)'
+            : 'scale(1) translateY(0) translateZ(0)',
           boxShadow: isActive
-            ? '0 16px 36px rgba(0, 209, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.6)'
+            ? '0 0 25px rgba(0, 210, 255, 0.45), inset 0 0 15px rgba(0, 210, 255, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.5)'
             : 'inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 10px 25px rgba(0, 0, 0, 0.4)',
-          borderColor: isActive ? 'rgba(0, 209, 255, 0.9)' : 'rgba(255, 255, 255, 0.12)',
+          borderColor: isActive ? 'rgba(0, 210, 255, 0.85)' : 'rgba(255, 255, 255, 0.12)',
         } as React.CSSProperties
       }
-      className={`stagger-card relative flex-shrink-0 cursor-pointer select-none ${width} rounded-3xl overflow-hidden liquid-glass-card border ${
+      className={`stagger-card movie-card relative flex-shrink-0 cursor-pointer select-none ${width} rounded-[20px] overflow-hidden border-2 ${
         isActive ? 'z-20' : 'z-10'
       }`}
     >
@@ -72,7 +81,13 @@ export const TVCard: React.FC<TVCardProps> = ({
       <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none z-10" />
 
       {/* Poster Container */}
-      <div className="relative aspect-[2/3] w-full bg-[#0a0f1d] overflow-hidden">
+      <div
+        style={{
+          WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+          maskImage: 'radial-gradient(white, black)',
+        }}
+        className="relative aspect-[2/3] w-full bg-[#0a0f1d] overflow-hidden"
+      >
         {item.poster ? (
           <img
             src={item.poster}
@@ -81,7 +96,7 @@ export const TVCard: React.FC<TVCardProps> = ({
             loading="lazy"
             style={{
               transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
-              transform: isActive ? 'scale(1.1)' : 'scale(1)',
+              transform: isActive ? 'scale(1.08)' : 'scale(1)',
             }}
           />
         ) : (
@@ -93,28 +108,27 @@ export const TVCard: React.FC<TVCardProps> = ({
         {/* Play Overlay (appears smoothly on hover / focus) */}
         <div
           style={{
-            transition:
-              'opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
             opacity: isActive ? 1 : 0,
             transform: isActive ? 'scale(1)' : 'scale(0.85)',
           }}
-          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-center justify-center pointer-events-none z-10"
+          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex items-center justify-center pointer-events-none z-10"
         >
-          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 to-tv-cyan text-black flex items-center justify-center shadow-2xl shadow-cyan-500/50">
-            <Play fill="currentColor" size={24} className="ml-0.5" />
+          <div className="flex-shrink-0 w-14 h-14 aspect-square rounded-full bg-gradient-to-tr from-cyan-400 to-tv-cyan text-black flex items-center justify-center shadow-[0_0_25px_rgba(0,210,255,0.6)]">
+            <Play fill="currentColor" size={22} className="ml-1" />
           </div>
         </div>
 
         {/* Top Floating Glass Badges */}
-        <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between z-10 pointer-events-none">
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
           {item.rating > 0 ? (
-            <div className="px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md text-xs font-black text-yellow-400 flex items-center gap-1 border border-white/10 shadow-md">
-              <span>★</span>
-              <span>{item.rating}</span>
+            <div className="px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md text-xs font-black text-yellow-400 flex items-center gap-1 border border-white/15 shadow-md leading-none">
+              <span className="text-[11px] leading-none">★</span>
+              <span className="leading-none">{item.rating}</span>
             </div>
           ) : <div />}
 
-          <div className="px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md text-[10px] text-gray-200 uppercase font-black tracking-wider border border-white/10 shadow-md">
+          <div className="px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md text-[10px] text-gray-200 uppercase font-black tracking-wider border border-white/15 shadow-md leading-none">
             {item.type === 'tv' ? 'Сериал' : 'Фильм'}
           </div>
         </div>

@@ -469,10 +469,10 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
                       <button
                         key={`${trans.provider}-${trans.id}`}
                         onClick={() => handleSelectTranslation(trans)}
-                        className={`px-5 py-3 rounded-2xl flex-shrink-0 text-sm font-bold transition-all duration-200 cursor-pointer ${
+                        className={`px-5 py-2.5 rounded-xl flex-shrink-0 text-sm font-bold transition-all duration-200 cursor-pointer border ${
                           isSelected
-                            ? 'liquid-glass-active text-white font-black'
-                            : 'liquid-glass-btn text-gray-200 hover:text-white hover:border-white/40'
+                            ? 'border-tv-cyan/90 bg-tv-cyan/15 text-white font-black shadow-[0_0_16px_rgba(0,209,255,0.35)]'
+                            : 'border-white/10 bg-white/[0.05] text-gray-300 hover:text-white hover:border-white/25 hover:bg-white/[0.08]'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
@@ -514,10 +514,10 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
                           <button
                             key={s.season}
                             onClick={() => setSelectedSeason(s.season)}
-                            className={`px-6 py-2.5 rounded-2xl text-sm font-black transition-all duration-200 cursor-pointer flex-shrink-0 ${
+                            className={`px-5 py-2 rounded-xl text-sm font-black transition-all duration-200 cursor-pointer flex-shrink-0 border ${
                               isSelected
-                                ? 'liquid-glass-active text-white font-black'
-                                : 'liquid-glass-btn text-gray-300 hover:text-white hover:border-white/40'
+                                ? 'border-tv-cyan/90 bg-tv-cyan/15 text-white font-black shadow-[0_0_16px_rgba(0,209,255,0.35)]'
+                                : 'border-white/10 bg-white/[0.05] text-gray-300 hover:text-white hover:border-white/25 hover:bg-white/[0.08]'
                             }`}
                           >
                             Сезон {s.season}
@@ -542,7 +542,7 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
                         <button
                           key={ep.id}
                           onClick={() => startWatching(selectedSeason, ep)}
-                          className="p-4 rounded-2xl liquid-glass-card hover:border-tv-cyan text-left transition-all duration-300 hover:scale-[1.03] group cursor-pointer border border-white/15 btn-spring"
+                          className="p-4 rounded-xl liquid-glass-card hover:border-tv-cyan hover:bg-tv-cyan/10 text-left transition-all duration-200 group cursor-pointer border border-white/10 hover:shadow-[0_0_16px_rgba(0,209,255,0.25)]"
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-extrabold text-white text-sm group-hover:text-tv-cyan transition-colors">
