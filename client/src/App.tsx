@@ -223,12 +223,14 @@ export const App: React.FC = () => {
       {/* Main Content Area: Independent scroll with screen transition animation */}
       <main
         key={currentScreen}
-        className="flex-1 h-full overflow-y-auto px-12 py-9 min-w-0 scrollbar-none relative z-10 screen-transition box-border"
+        className={`flex-1 h-full min-w-0 scrollbar-none relative z-10 screen-transition box-border ${
+          currentScreen === 'search' ? 'overflow-hidden p-0' : 'overflow-y-auto px-12 py-9'
+        }`}
         style={{
           flex: '1 1 0%',
           height: '100%',
           maxHeight: '100vh',
-          overflowY: 'auto',
+          overflowY: currentScreen === 'search' ? 'hidden' : 'auto',
           overflowX: 'hidden',
         }}
       >

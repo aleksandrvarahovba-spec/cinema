@@ -67,15 +67,25 @@ class SpatialNavigationManager {
       this.zoneMemory.set(node.zone, key);
       node.onFocus?.();
 
-      // Ensure element is visible on the 1080p screen
-      try {
-        node.element.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'center',
-        });
-      } catch {
-        // Fallback
+      if (node.element) {
+        try {
+          node.element.focus({ preventScroll: true });
+        } catch {
+          node.element.focus();
+        }
+      }
+
+      // Ensure element is visible on the 1080p screen (skip stationary zones like keyboard or sidebar)
+      if (node.zone !== 'keyboard' && node.zone !== 'sidebar' && node.zone !== 'search-input') {
+        try {
+          node.element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'nearest',
+          });
+        } catch {
+          // Fallback
+        }
       }
     }
 
@@ -126,6 +136,15 @@ class SpatialNavigationManager {
     // Evaluate all candidates
     for (const [key, candidate] of this.nodes) {
       if (key === this.currentKey) continue;
+
+      // When in keyboard, do NOT jump into search-results unless user explicitly presses 'right'
+      if (current.zone === 'keyboard' && candidate.zone === 'search-results' && direction !== 'right') {
+        continue;
+      }
+      // When in search-results, do NOT jump back to keyboard unless user explicitly presses 'left'
+      if (current.zone === 'search-results' && candidate.zone === 'keyboard' && direction !== 'left') {
+        continue;
+      }
 
       // Skip elements that are not visible or detached
       if (!candidate.element.offsetParent && candidate.element.offsetWidth === 0) {

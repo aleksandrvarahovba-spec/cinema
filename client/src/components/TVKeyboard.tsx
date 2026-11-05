@@ -29,25 +29,40 @@ const KeyboardKey: React.FC<{
   onClick: () => void;
   width?: string;
   isSpecial?: boolean;
-}> = ({ char, focusKey, onClick, width = 'w-11 h-11', isSpecial = false }) => {
+}> = ({ char, focusKey, onClick, width = 'flex-1', isSpecial = false }) => {
   const { ref, isFocused } = useFocusable({
     focusKey,
     zone: 'keyboard',
     onEnter: onClick,
   });
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick();
+    if (ref.current) {
+      try {
+        ref.current.focus({ preventScroll: true });
+      } catch {
+        ref.current.focus();
+      }
+    }
+    spatialNav.setFocus(focusKey);
+  };
+
   return (
     <button
       ref={ref}
       tabIndex={-1}
-      onClick={onClick}
+      type="button"
+      onClick={handleClick}
       onMouseEnter={() => spatialNav.setFocus(focusKey)}
-      className={`${width} rounded-xl btn-spring flex items-center justify-center font-black text-sm select-none cursor-pointer transition-all duration-200 border ${
+      className={`${width} h-10 rounded-lg btn-spring flex items-center justify-center font-bold text-xs select-none cursor-pointer transition-all duration-150 border box-border ${
         isFocused
-          ? 'liquid-glass-active text-black scale-110 shadow-[0_0_20px_rgba(0,209,255,0.7)] z-10 font-black'
+          ? 'liquid-glass-active text-black scale-105 shadow-[0_0_16px_rgba(0,209,255,0.7)] z-10 font-black'
           : isSpecial
-          ? 'liquid-glass text-tv-cyan border-tv-cyan/30 hover:border-tv-cyan hover:scale-105'
-          : 'bg-white/[0.06] hover:bg-white/[0.12] text-white border-white/10 hover:border-white/30 hover:scale-105'
+          ? 'liquid-glass text-tv-cyan border-tv-cyan/30 hover:border-tv-cyan'
+          : 'bg-white/[0.06] hover:bg-white/[0.12] text-white border-white/10 hover:border-white/30'
       }`}
     >
       {char}
@@ -65,10 +80,10 @@ export const TVKeyboard: React.FC<TVKeyboardProps> = ({
   const rows = layout === 'RU' ? RU_KEYS : EN_KEYS;
 
   return (
-    <div className="flex flex-col gap-2.5 p-5 liquid-glass rounded-3xl border border-white/20 shadow-2xl backdrop-blur-2xl w-max">
+    <div className="flex flex-col gap-2 p-3.5 liquid-glass rounded-2xl border border-white/20 shadow-2xl backdrop-blur-2xl w-full max-w-[480px] box-border select-none">
       {/* Letter / Number Rows */}
       {rows.map((row, rIdx) => (
-        <div key={rIdx} className="flex gap-2 justify-center">
+        <div key={rIdx} className="flex gap-1.5 w-full justify-between">
           {row.map((char) => (
             <KeyboardKey
               key={`${layout}-${char}`}
@@ -81,38 +96,38 @@ export const TVKeyboard: React.FC<TVKeyboardProps> = ({
       ))}
 
       {/* Action / Control Row */}
-      <div className="flex gap-2.5 justify-center mt-2 pt-2 border-t border-white/10">
+      <div className="flex gap-1.5 w-full justify-between mt-1 pt-2 border-t border-white/10">
         <KeyboardKey
           char={layout === 'RU' ? 'EN' : 'RU'}
           focusKey="kb-toggle-lang"
-          width="w-20 h-11"
+          width="w-14"
           isSpecial
           onClick={() => setLayout((prev) => (prev === 'RU' ? 'EN' : 'RU'))}
         />
         <KeyboardKey
           char="ПРОБЕЛ"
           focusKey="kb-space"
-          width="w-40 h-11"
+          width="flex-1"
           onClick={() => onInput(' ')}
         />
         <KeyboardKey
-          char="⌫ СТЕРЕТЬ"
+          char="⌫"
           focusKey="kb-backspace"
-          width="w-28 h-11"
+          width="w-12"
           isSpecial
           onClick={onBackspace}
         />
         <KeyboardKey
-          char="ОЧИСТИТЬ"
+          char="СБРОС"
           focusKey="kb-clear"
-          width="w-28 h-11"
+          width="w-14"
           isSpecial
           onClick={onClear}
         />
         <KeyboardKey
           char="НАЙТИ"
           focusKey="kb-submit"
-          width="w-24 h-11"
+          width="w-16"
           isSpecial
           onClick={onSubmit}
         />

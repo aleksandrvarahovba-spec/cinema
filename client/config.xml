@@ -2,7 +2,7 @@
 <widget xmlns="http://www.w3.org/ns/widgets" 
         xmlns:tizen="http://tizen.org/ns/widgets" 
         id="http://varahovba.cinema/VarahovbaCinema" 
-        version="1.0.0" 
+        version="1.0.2" 
         viewmodes="maximized">
     <tizen:application id="varahovba0.VarahovbaCinema" 
                        package="varahovba0" 
