@@ -131,11 +131,18 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
             }
 
             const sorted = [...rawSeasons]
-              .filter((s) => !isNaN(s.season) && s.season > 0)
-              .sort((a, b) => a.season - b.season)
+              .filter((s) => !isNaN(Number(s.season)) && Number(s.season) > 0)
+              .sort((a, b) => Number(a.season) - Number(b.season))
               .map((s) => ({
                 ...s,
-                episodes: [...(s.episodes || [])].sort((a, b) => a.episode - b.episode),
+                season: Number(s.season),
+                episodes: [...(s.episodes || [])]
+                  .filter((ep) => !isNaN(Number(ep.episode)) && Number(ep.episode) > 0)
+                  .sort((a, b) => Number(a.episode) - Number(b.episode))
+                  .map((ep) => ({
+                    ...ep,
+                    episode: Number(ep.episode),
+                  })),
               }));
 
             setSeasonsData(sorted);
@@ -182,11 +189,18 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
 
       if (rawSeasons.length > 0) {
         const sorted = [...rawSeasons]
-          .filter((s) => !isNaN(s.season) && s.season > 0)
-          .sort((a, b) => a.season - b.season)
+          .filter((s) => !isNaN(Number(s.season)) && Number(s.season) > 0)
+          .sort((a, b) => Number(a.season) - Number(b.season))
           .map((s) => ({
             ...s,
-            episodes: [...(s.episodes || [])].sort((a, b) => a.episode - b.episode),
+            season: Number(s.season),
+            episodes: [...(s.episodes || [])]
+              .filter((ep) => !isNaN(Number(ep.episode)) && Number(ep.episode) > 0)
+              .sort((a, b) => Number(a.episode) - Number(b.episode))
+              .map((ep) => ({
+                ...ep,
+                episode: Number(ep.episode),
+              })),
           }));
 
         setSeasonsData(sorted);
@@ -468,10 +482,10 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
                       <button
                         key={`${trans.provider}-${trans.id}`}
                         onClick={() => handleSelectTranslation(trans)}
-                        className={`px-5 py-2.5 rounded-xl flex-shrink-0 text-sm font-bold transition-all duration-200 cursor-pointer border ${
+                        className={`px-5 py-2.5 rounded-xl flex-shrink-0 text-sm font-bold transition-all duration-200 cursor-pointer border-2 outline-none focus:outline-none ${
                           isSelected
-                            ? 'border-tv-cyan/90 bg-tv-cyan/15 text-white font-black shadow-[0_0_16px_rgba(0,209,255,0.35)]'
-                            : 'border-white/10 bg-white/[0.05] text-gray-300 hover:text-white hover:border-white/25 hover:bg-white/[0.08]'
+                            ? 'border-tv-cyan bg-tv-cyan/20 text-white font-black shadow-[0_0_20px_rgba(0,210,255,0.45)]'
+                            : 'border-white/10 bg-white/[0.05] text-gray-300 hover:text-white hover:border-white/30 hover:bg-white/[0.08]'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
@@ -513,10 +527,10 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
                           <button
                             key={s.season}
                             onClick={() => setSelectedSeason(s.season)}
-                            className={`px-5 py-2 rounded-xl text-sm font-black transition-all duration-200 cursor-pointer flex-shrink-0 border ${
+                            className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all duration-200 cursor-pointer flex-shrink-0 border-2 outline-none focus:outline-none ${
                               isSelected
-                                ? 'border-tv-cyan/90 bg-tv-cyan/15 text-white font-black shadow-[0_0_16px_rgba(0,209,255,0.35)]'
-                                : 'border-white/10 bg-white/[0.05] text-gray-300 hover:text-white hover:border-white/25 hover:bg-white/[0.08]'
+                                ? 'border-tv-cyan bg-tv-cyan/20 text-white shadow-[0_0_20px_rgba(0,210,255,0.45)]'
+                                : 'border-white/10 bg-white/[0.05] text-gray-300 hover:text-white hover:border-white/30 hover:bg-white/[0.08]'
                             }`}
                           >
                             Сезон {s.season}
@@ -541,7 +555,7 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
                         <button
                           key={ep.id}
                           onClick={() => startWatching(selectedSeason, ep)}
-                          className="p-4 rounded-xl liquid-glass-card hover:border-tv-cyan hover:bg-tv-cyan/10 text-left transition-all duration-200 group cursor-pointer border border-white/10 hover:shadow-[0_0_16px_rgba(0,209,255,0.25)]"
+                          className="p-4 rounded-xl liquid-glass-card hover:border-tv-cyan hover:bg-tv-cyan/10 text-left transition-all duration-200 group cursor-pointer border-2 border-white/10 hover:shadow-[0_0_20px_rgba(0,210,255,0.35)] outline-none focus:outline-none"
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-extrabold text-white text-sm group-hover:text-tv-cyan transition-colors">

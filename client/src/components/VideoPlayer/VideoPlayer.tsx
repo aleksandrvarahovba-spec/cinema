@@ -54,8 +54,29 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
 
+  // Check if we have a direct stream (.m3u8 / .mp4 / extracted qualities) to bypass iframes completely
+  const hasDirectStream = Boolean(
+    (initialQualities &&
+      initialQualities.length > 0 &&
+      initialQualities.some(
+        (q) => q.url?.includes('.m3u8') || q.url?.includes('.mp4') || q.proxiedUrl?.includes('.m3u8')
+      )) ||
+      (initialStreamUrl &&
+        (initialStreamUrl.includes('.m3u8') || initialStreamUrl.includes('.mp4'))) ||
+      (currentEpisode?.qualities && currentEpisode.qualities.length > 0)
+  );
+
   const [currentEmbedUrl, setCurrentEmbedUrl] = useState<string | null>(() => {
-    return selectedTranslation.embedUrl || embedUrl || (initialStreamUrl && !initialStreamUrl.includes('.m3u8') && !initialStreamUrl.includes('.mp4') ? initialStreamUrl : null);
+    if (hasDirectStream) return null;
+    return (
+      selectedTranslation.embedUrl ||
+      embedUrl ||
+      (initialStreamUrl &&
+      !initialStreamUrl.includes('.m3u8') &&
+      !initialStreamUrl.includes('.mp4')
+        ? initialStreamUrl
+        : null)
+    );
   });
 
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
@@ -67,6 +88,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [settingsTab, setSettingsTab] = useState<'quality' | 'voiceover'>('quality');
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const [focusArea, setFocusArea] = useState<'tabs' | 'list'>('list');
+
+  // Smart TV Autoplay Direct Gesture & Watchdog State
+  const [showDirectPlay, setShowDirectPlay] = useState<boolean>(false);
+  const [failoverToast, setFailoverToast] = useState<string | null>(null);
+  const directPlayTimerRef = useRef<any>(null);
+  const stallSecondsRef = useRef<number>(0);
+  const lastTimeTrackRef = useRef<number>(initialTime);
 
   // Qualities list with Auto option
   const prepareQualities = (rawQualities: StreamQuality[]): StreamQuality[] => {
@@ -85,15 +113,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return rawQualities;
   };
 
+  const effectiveInitialQualities =
+    initialQualities && initialQualities.length > 0
+      ? initialQualities
+      : currentEpisode?.qualities || [];
+
   const [qualities, setQualities] = useState<StreamQuality[]>(() =>
-    prepareQualities(initialQualities)
+    prepareQualities(effectiveInitialQualities)
   );
 
   const [activeQuality, setActiveQuality] = useState<string>(() => {
     const defaultQ =
-      initialQualities.find((q) => q.quality === '1080p')?.quality ||
-      initialQualities.find((q) => q.quality === '720p')?.quality ||
-      initialQualities[0]?.quality ||
+      effectiveInitialQualities.find((q) => q.quality === '1080p')?.quality ||
+      effectiveInitialQualities.find((q) => q.quality === '720p')?.quality ||
+      effectiveInitialQualities[0]?.quality ||
       'Auto';
     return defaultQ;
   });
@@ -115,12 +148,36 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }, 4500);
   };
 
+  // Direct Play gesture unlock (Smart TV Autoplay policy & AudioContext)
+  const handleDirectPlay = () => {
+    setShowDirectPlay(false);
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        ctx.resume();
+      }
+    } catch (_) {}
+
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+        })
+        .catch((err) => console.warn('Direct play error:', err));
+    }
+  };
+
   // Attach Stream to HTML5 Video or HLS.js
   const loadStream = (url: string, startTime = 0) => {
     const video = videoRef.current;
     if (!video || !url) return;
 
     setIsLoading(true);
+    setShowDirectPlay(false);
 
     if (hlsRef.current) {
       hlsRef.current.destroy();
@@ -130,8 +187,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (Hls.isSupported() && url.includes('.m3u8')) {
       const hls = new Hls({
         enableWorker: false, // Maximum compatibility on older WebKit / Tizen 3.0
+        maxBufferLength: 10,
+        maxMaxBufferLength: 20,
+        maxBufferSize: 25 * 1024 * 1024,
         lowLatencyMode: false,
-        backBufferLength: 90,
+        backBufferLength: 30,
       });
 
       hls.loadSource(url);
@@ -142,7 +202,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         if (startTime > 0) {
           video.currentTime = startTime;
         }
-        video.play().catch(() => {});
+        video.play().catch(() => {
+          // Autoplay was blocked by browser policy -> show direct play button
+          setShowDirectPlay(true);
+        });
       });
 
       hls.on(Hls.Events.ERROR, (_, data) => {
@@ -171,10 +234,63 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         if (startTime > 0) {
           video.currentTime = startTime;
         }
-        video.play().catch(() => {});
+        video.play().catch(() => {
+          setShowDirectPlay(true);
+        });
       };
     }
   };
+
+  // 3-second Direct Play button timer for Smart TV Autoplay unlock
+  useEffect(() => {
+    if (directPlayTimerRef.current) clearTimeout(directPlayTimerRef.current);
+
+    if (isLoading && !currentEmbedUrl) {
+      directPlayTimerRef.current = setTimeout(() => {
+        if (isLoading) {
+          setShowDirectPlay(true);
+        }
+      }, 3000);
+    } else {
+      setShowDirectPlay(false);
+    }
+
+    return () => {
+      if (directPlayTimerRef.current) clearTimeout(directPlayTimerRef.current);
+    };
+  }, [isLoading, currentEmbedUrl]);
+
+  // 6-second Watchdog Timeout (Auto-failover to next balancer)
+  useEffect(() => {
+    stallSecondsRef.current = 0;
+    const interval = setInterval(() => {
+      if (!currentEmbedUrl && videoRef.current) {
+        const cur = videoRef.current.currentTime;
+        const stalled =
+          isLoading || (isPlaying && cur === lastTimeTrackRef.current && cur > 0);
+
+        if (stalled) {
+          stallSecondsRef.current += 1;
+          if (stallSecondsRef.current >= 6) {
+            stallSecondsRef.current = 0;
+            if (translations && translations.length > 1) {
+              const curIdx = translations.findIndex((t) => t.id === activeTranslation.id);
+              const nextIdx = (curIdx + 1) % translations.length;
+              const nextTrans = translations[nextIdx];
+              setFailoverToast(`Буферизация... Переключение на плеер: ${nextTrans.name}`);
+              setTimeout(() => setFailoverToast(null), 4000);
+              handleTranslationSelect(nextTrans);
+            }
+          }
+        } else {
+          stallSecondsRef.current = 0;
+          lastTimeTrackRef.current = cur;
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLoading, isPlaying, currentEmbedUrl, translations, activeTranslation]);
 
   // Initial stream load
   useEffect(() => {
@@ -182,7 +298,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const streamToLoad =
         qualities.find((q) => q.quality === activeQuality)?.proxiedUrl ||
         qualities.find((q) => q.quality === activeQuality)?.url ||
-        initialStreamUrl;
+        initialStreamUrl ||
+        currentEpisode?.qualities?.[0]?.url;
 
       if (streamToLoad) {
         loadStream(streamToLoad, initialTime);
@@ -196,6 +313,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
       if (osdTimerRef.current) {
         clearTimeout(osdTimerRef.current);
+      }
+      if (directPlayTimerRef.current) {
+        clearTimeout(directPlayTimerRef.current);
       }
     };
   }, []);
@@ -268,6 +388,33 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     setActiveTranslation(translation);
 
+    // Prioritize direct qualities if available to avoid iframe ads
+    let directQualities = translation.qualities;
+    if (
+      (!directQualities || directQualities.length === 0) &&
+      media.type === 'tv' &&
+      currentEpisode?.qualities &&
+      currentEpisode.qualities.length > 0
+    ) {
+      directQualities = currentEpisode.qualities;
+    }
+
+    if (directQualities && directQualities.length > 0) {
+      setCurrentEmbedUrl(null);
+      setIsLoading(true);
+      const time = videoRef.current?.currentTime || 0;
+      const prepared = prepareQualities(directQualities);
+      setQualities(prepared);
+      const match =
+        prepared.find((q) => q.quality === activeQuality) ||
+        prepared.find((q) => q.quality === '1080p') ||
+        prepared[0];
+      loadStream(match.proxiedUrl || match.url, time);
+      setShowSettings(false);
+      resetOsdTimer();
+      return;
+    }
+
     // If this translation is an embed balancer player
     if (translation.embedUrl) {
       let finalUrl = translation.embedUrl;
@@ -286,20 +433,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setCurrentEmbedUrl(null);
     setIsLoading(true);
     const time = videoRef.current?.currentTime || 0;
-
-    // If this translation has embedded qualities (e.g. from Collaps)
-    if (translation.qualities && translation.qualities.length > 0) {
-      const prepared = prepareQualities(translation.qualities);
-      setQualities(prepared);
-      const match =
-        prepared.find((q) => q.quality === activeQuality) ||
-        prepared.find((q) => q.quality === '1080p') ||
-        prepared[0];
-      loadStream(match.proxiedUrl || match.url, time);
-      setShowSettings(false);
-      resetOsdTimer();
-      return;
-    }
 
     // Fetch from backend for provider
     const newQualities = await getStreamQualities({
@@ -412,6 +545,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         return;
       }
 
+      // Smart TV Autoplay Unlock: Enter or Play starts playback
+      if (showDirectPlay && (isEnterKey(e) || isPlayPauseKey(e))) {
+        e.preventDefault();
+        handleDirectPlay();
+        return;
+      }
+
       // 3. Navigation IN VIDEO PLAYER
       const video = videoRef.current;
       if (!video) return;
@@ -483,6 +623,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     qualities,
     translations,
     showOSD,
+    showDirectPlay,
     duration,
     activeTranslation,
     activeQuality,
@@ -579,18 +720,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
           </div>
 
-          {/* Clean Fullscreen Responsive Iframe */}
+          {/* Clean Fullscreen Responsive Iframe with Strict Ad-Bypass Sandboxing */}
           <iframe
             key={currentEmbedUrl}
             src={currentEmbedUrl}
-            className="w-full h-full border-0 flex-1"
+            className="w-full h-full border-0 flex-1 video-embed-frame"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             allowFullScreen
           />
         </div>
       ) : (
         <>
-          {/* HTML5 Video Element */}
+          {/* HTML5 Video Element with TV Autoplay & PlaysInline */}
           <video
             ref={videoRef}
             className="w-full h-full object-contain"
@@ -598,9 +740,39 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={handleEnded}
             onWaiting={() => setIsLoading(true)}
-            onPlaying={() => setIsLoading(false)}
+            onPlaying={() => {
+              setIsLoading(false);
+              setShowDirectPlay(false);
+            }}
             playsInline
+            webkit-playsinline="true"
+            autoPlay
+            preload="auto"
           />
+
+      {/* Failover Toast Notification */}
+      {failoverToast && (
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 animate-fadeIn pointer-events-none">
+          <div className="liquid-glass px-6 py-3 rounded-2xl border border-tv-cyan/50 shadow-[0_0_25px_rgba(0,210,255,0.4)] flex items-center gap-3 text-white text-sm font-black">
+            <Sparkles size={18} className="text-tv-cyan animate-pulse" />
+            <span>{failoverToast}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Direct Play Button (Unlocks Smart TV Autoplay & AudioContext after 3s stall) */}
+      {showDirectPlay && !showSettings && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/65 backdrop-blur-md animate-fadeIn">
+          <button
+            onClick={handleDirectPlay}
+            className="px-10 py-5 rounded-3xl liquid-glass-accent text-white font-black text-2xl flex items-center gap-4 shadow-[0_0_40px_rgba(229,9,20,0.6)] cursor-pointer hover:scale-105 active:scale-95 transition-all outline-none border-2 border-white/30 hover:border-tv-cyan"
+            autoFocus
+          >
+            <Play size={32} fill="currentColor" />
+            <span>Смотреть</span>
+          </button>
+        </div>
+      )}
 
       {/* Loading Spinner */}
       {isLoading && (

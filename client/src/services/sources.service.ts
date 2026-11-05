@@ -97,6 +97,14 @@ export async function resolveAllSources(params: {
                       id: `${s.season}_${ep.episode}`,
                       episode: parseInt(ep.episode, 10),
                       title: ep.title || `Серия ${ep.episode}`,
+                      qualities: (ep.hls || ep.file)
+                        ? [
+                            { quality: '1080p', url: ep.hls || ep.file },
+                            { quality: '720p', url: ep.hls || ep.file },
+                            { quality: '480p', url: ep.hls || ep.file },
+                            { quality: '360p', url: ep.hls || ep.file },
+                          ]
+                        : [],
                     }))
                     .sort((a: any, b: any) => a.episode - b.episode),
                 }))
@@ -242,6 +250,10 @@ export async function resolveAllSources(params: {
       for (const t of translations) {
         if (!t.seasons || t.seasons.length === 0) {
           t.seasons = generatedSeasons;
+        } else {
+          t.seasons = [...t.seasons]
+            .filter((s) => !isNaN(Number(s.season)) && Number(s.season) > 0)
+            .sort((a, b) => Number(a.season) - Number(b.season));
         }
       }
     }

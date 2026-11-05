@@ -188,3 +188,14 @@ html, body, #root {
 .btn-spring:active {
   transform: scale(0.94) !important;
 }
+
+/* Ad-Bypass & Video Frame Controls Protection */
+.video-embed-frame {
+  pointer-events: auto !important;
+}
+
+/* Suppress common banner ads, clickunders and overlay ads if injected */
+[id*="banner"], [class*="banner-ad"], [class*="advert"], [id*="advert"], .ad-overlay, .clickunder, .vast-blocker {
+  pointer-events: none !important;
+}
+
