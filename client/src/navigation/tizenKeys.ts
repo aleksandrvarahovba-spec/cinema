@@ -44,6 +44,7 @@ export function registerTizenKeys() {
       const tvInputDevice = (window as any).tizen.tvinputdevice;
       if (tvInputDevice) {
         const supportedKeys = [
+          'Return',
           'MediaPlay',
           'MediaPause',
           'MediaPlayPause',

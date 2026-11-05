@@ -51,6 +51,12 @@ export const App: React.FC = () => {
           setActiveMedia(null);
         } else if (currentScreen !== 'home') {
           setCurrentScreen('home');
+        } else {
+          if (typeof window !== 'undefined' && (window as any).tizen?.application) {
+            try {
+              (window as any).tizen.application.getCurrentApplication().exit();
+            } catch {}
+          }
         }
       }
     };

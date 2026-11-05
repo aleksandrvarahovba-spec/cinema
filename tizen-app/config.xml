@@ -5,16 +5,13 @@
         version="1.0.0" 
         viewmodes="maximized">
     <tizen:application id="varahovba0.VarahovbaCinema" 
-                       exec="index.html" 
-                       entry="index.html" 
-                       type="capp" 
                        package="varahovba0" 
-                       screen-orientation="landscape" 
                        required_version="3.0"/>
-    <name>VARAHOVBA CINEMA</name>
-    <description>VARAHOVBA CINEMA • Smart TV 4K Ultra HD for Samsung Tizen OS 3.0</description>
-    <icon src="icon.png"/>
     <content src="index.html"/>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    <icon src="icon.png"/>
+    <name>VARAHOVBA CINEMA</name>
+    <description>VARAHOVBA CINEMA - Smart TV 4K Ultra HD for Samsung Tizen OS 3.0</description>
     
     <!-- Samsung Smart TV Profile -->
     <tizen:profile name="tv-samsung"/>
@@ -22,16 +19,17 @@
     <!-- Privileges -->
     <tizen:privilege name="http://tizen.org/privilege/internet"/>
     <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
     
     <!-- Settings for 1080p landscape fullscreen & remote control -->
     <tizen:setting screen-orientation="landscape" 
-                   context-menu="enable" 
+                   context-menu="disable" 
                    background-support="disable" 
                    encryption="disable" 
                    install-location="auto" 
                    hwkey-event="enable"/>
                    
-    <!-- Full network & remote navigation access -->
+    <!-- Full network access for video balancers, streams and posters -->
     <access origin="*" subdomains="true"/>
     <tizen:allow-navigation>*</tizen:allow-navigation>
 </widget>
