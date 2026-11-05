@@ -115,18 +115,38 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
           const defaultTrans = ext.translations[0];
           setSelectedTranslation(defaultTrans);
 
-          if (item.type === 'tv' && defaultTrans.seasons && defaultTrans.seasons.length > 0) {
-            setSeasonsData(defaultTrans.seasons);
-          } else if (item.type === 'tv' && item.seasons && item.seasons.length > 0) {
-            const fallbackSeasons: StreamSeason[] = item.seasons.map((s) => ({
-              season: s.seasonNumber,
-              episodes: Array.from({ length: s.episodeCount || 10 }, (_, i) => ({
-                id: `${s.seasonNumber}_${i + 1}`,
-                episode: i + 1,
-                title: `Серия ${i + 1}`,
-              })),
-            }));
-            setSeasonsData(fallbackSeasons);
+          if (item.type === 'tv') {
+            let rawSeasons: StreamSeason[] = [];
+            if (defaultTrans.seasons && defaultTrans.seasons.length > 0) {
+              rawSeasons = defaultTrans.seasons;
+            } else if (item.seasons && item.seasons.length > 0) {
+              rawSeasons = item.seasons.map((s) => ({
+                season: s.seasonNumber,
+                episodes: Array.from({ length: s.episodeCount || 10 }, (_, i) => ({
+                  id: `${s.seasonNumber}_${i + 1}`,
+                  episode: i + 1,
+                  title: `Серия ${i + 1}`,
+                })),
+              }));
+            }
+
+            const sorted = [...rawSeasons]
+              .filter((s) => !isNaN(s.season) && s.season > 0)
+              .sort((a, b) => a.season - b.season)
+              .map((s) => ({
+                ...s,
+                episodes: [...(s.episodes || [])].sort((a, b) => a.episode - b.episode),
+              }));
+
+            setSeasonsData(sorted);
+            if (sorted.length > 0) {
+              const initialSeason =
+                savedProgress?.season !== undefined &&
+                sorted.some((s) => s.season === savedProgress.season)
+                  ? savedProgress.season
+                  : sorted[0].season;
+              setSelectedSeason(initialSeason);
+            }
           }
         }
       } catch (err) {
@@ -146,8 +166,9 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
 
     // If TV series and seasons are not loaded for this translation, fetch them
     if (details?.type === 'tv') {
+      let rawSeasons: StreamSeason[] = [];
       if (trans.seasons && trans.seasons.length > 0) {
-        setSeasonsData(trans.seasons);
+        rawSeasons = trans.seasons;
       } else {
         const seasons = await fetchSeriesStructure(
           trans.provider,
@@ -155,7 +176,22 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
           trans.rawMeta?.movieId || trans.id
         );
         if (seasons && seasons.length > 0) {
-          setSeasonsData(seasons);
+          rawSeasons = seasons;
+        }
+      }
+
+      if (rawSeasons.length > 0) {
+        const sorted = [...rawSeasons]
+          .filter((s) => !isNaN(s.season) && s.season > 0)
+          .sort((a, b) => a.season - b.season)
+          .map((s) => ({
+            ...s,
+            episodes: [...(s.episodes || [])].sort((a, b) => a.episode - b.episode),
+          }));
+
+        setSeasonsData(sorted);
+        if (!sorted.some((s) => s.season === selectedSeason)) {
+          setSelectedSeason(sorted[0].season);
         }
       }
     }
@@ -241,8 +277,11 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
     setIsFavorite(newState);
   };
 
-  const currentEpisodes =
-    seasonsData.find((s) => s.season === selectedSeason)?.episodes || [];
+  const currentEpisodes = (
+    seasonsData.find((s) => s.season === selectedSeason)?.episodes || []
+  )
+    .slice()
+    .sort((a, b) => a.episode - b.episode);
 
   return (
     <div
@@ -423,16 +462,16 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
               </div>
 
               {extractions && extractions.translations.length > 0 ? (
-                <div className="flex gap-3 overflow-x-auto py-2 scrollbar-none items-center">
+                <div className="flex gap-2.5 overflow-x-auto py-2.5 px-1 scrollbar-none items-center">
                   {extractions.translations.map((trans) => {
                     const isSelected = selectedTranslation?.id === trans.id;
                     return (
                       <button
                         key={`${trans.provider}-${trans.id}`}
                         onClick={() => handleSelectTranslation(trans)}
-                        className={`px-5 py-3 rounded-2xl flex-shrink-0 text-sm font-bold transition-all duration-300 cursor-pointer border btn-spring ${
+                        className={`px-5 py-3 rounded-2xl flex-shrink-0 text-sm font-bold transition-all duration-200 cursor-pointer ${
                           isSelected
-                            ? 'liquid-glass-active text-white scale-[1.04] font-black shadow-lg shadow-cyan-500/25'
+                            ? 'liquid-glass-active text-white font-black'
                             : 'liquid-glass-btn text-gray-200 hover:text-white hover:border-white/40'
                         }`}
                       >
@@ -461,26 +500,42 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
               <div className="space-y-4">
                 {/* Seasons Tabs */}
                 {seasonsData.length > 0 && (
-                  <div className="flex gap-3 overflow-x-auto py-1 scrollbar-none">
-                    {seasonsData.map((s) => (
-                      <button
-                        key={s.season}
-                        onClick={() => setSelectedSeason(s.season)}
-                        className={`px-6 py-2.5 rounded-2xl text-sm font-black transition-all cursor-pointer border btn-spring ${
-                          selectedSeason === s.season
-                            ? 'liquid-glass-active text-white shadow-lg scale-105'
-                            : 'liquid-glass-btn text-gray-300 hover:text-white'
-                        }`}
-                      >
-                        Сезон {s.season}
-                      </button>
-                    ))}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-4 rounded-full bg-tv-cyan shadow-[0_0_8px_#00d1ff]" />
+                      <h4 className="text-sm font-black text-gray-300 uppercase tracking-wider">
+                        Выбор сезона
+                      </h4>
+                    </div>
+                    <div className="flex gap-2.5 overflow-x-auto py-2.5 px-1 scrollbar-none items-center">
+                      {seasonsData.map((s) => {
+                        const isSelected = selectedSeason === s.season;
+                        return (
+                          <button
+                            key={s.season}
+                            onClick={() => setSelectedSeason(s.season)}
+                            className={`px-6 py-2.5 rounded-2xl text-sm font-black transition-all duration-200 cursor-pointer flex-shrink-0 ${
+                              isSelected
+                                ? 'liquid-glass-active text-white font-black'
+                                : 'liquid-glass-btn text-gray-300 hover:text-white hover:border-white/40'
+                            }`}
+                          >
+                            Сезон {s.season}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
                 {/* Episodes Grid */}
                 <div className="space-y-3">
-                  <h4 className="text-lg font-black text-white">Список серий</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-lg font-black text-white">Список серий</h4>
+                    <span className="text-xs font-bold text-tv-muted">
+                      {currentEpisodes.length} серий
+                    </span>
+                  </div>
                   {currentEpisodes.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
                       {currentEpisodes.map((ep) => (

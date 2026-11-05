@@ -89,14 +89,19 @@ export async function resolveAllSources(params: {
 
             // Case A: TV Series with seasons & episodes
             if (data.playlist?.seasons && data.playlist.seasons.length > 0) {
-              const formattedSeasons: StreamSeason[] = data.playlist.seasons.map((s: any) => ({
-                season: parseInt(s.season, 10),
-                episodes: (s.episodes || []).map((ep: any) => ({
-                  id: `${s.season}_${ep.episode}`,
-                  episode: parseInt(ep.episode, 10),
-                  title: ep.title || `Серия ${ep.episode}`,
-                })),
-              }));
+              const formattedSeasons: StreamSeason[] = data.playlist.seasons
+                .map((s: any) => ({
+                  season: parseInt(s.season, 10),
+                  episodes: (s.episodes || [])
+                    .map((ep: any) => ({
+                      id: `${s.season}_${ep.episode}`,
+                      episode: parseInt(ep.episode, 10),
+                      title: ep.title || `Серия ${ep.episode}`,
+                    }))
+                    .sort((a: any, b: any) => a.episode - b.episode),
+                }))
+                .filter((s: StreamSeason) => !isNaN(s.season) && s.season > 0)
+                .sort((a: StreamSeason, b: StreamSeason) => a.season - b.season);
 
               translations.push({
                 id: 'collaps_tv_primary',
