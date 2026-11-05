@@ -393,10 +393,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (
       (!directQualities || directQualities.length === 0) &&
       media.type === 'tv' &&
-      currentEpisode?.qualities &&
-      currentEpisode.qualities.length > 0
+      currentSeason &&
+      currentEpisode
     ) {
-      directQualities = currentEpisode.qualities;
+      const sObj = translation.seasons?.find((s) => s.season === currentSeason);
+      const epObj = sObj?.episodes?.find((e) => e.episode === currentEpisode.episode);
+      if (epObj?.qualities && epObj.qualities.length > 0) {
+        directQualities = epObj.qualities;
+      } else if (currentEpisode?.qualities && currentEpisode.qualities.length > 0) {
+        directQualities = currentEpisode.qualities;
+      }
     }
 
     if (directQualities && directQualities.length > 0) {

@@ -8,8 +8,8 @@ import {
 } from '../types/index.js';
 import { resolveAllSources } from './sources.service.js';
 
-const RAW_API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').trim().replace(/\/+$/, '');
-export const API_BASE = RAW_API_URL.endsWith('/api') ? RAW_API_URL : `${RAW_API_URL}/api`;
+const RAW_API_URL = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+export const API_BASE = RAW_API_URL ? (RAW_API_URL.endsWith('/api') ? RAW_API_URL : `${RAW_API_URL}/api`) : '/api';
 
 const TMDB_KEY = '4ef0d7355d9ffb5151e987764708ce96';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
@@ -234,30 +234,45 @@ export async function extractStreams(params: {
   type: 'movie' | 'tv';
   mediaItem?: MediaItem;
 }): Promise<ExtractionResult> {
-  // 1. Try Backend if available
+  const query = new URLSearchParams({
+    title: params.title,
+    type: params.type,
+  });
+
+  if (params.originalTitle) query.set('originalTitle', params.originalTitle);
+  if (params.year) query.set('year', params.year.toString());
+  if (params.imdbId) query.set('imdbId', params.imdbId);
+  if (params.kinopoiskId) query.set('kinopoiskId', params.kinopoiskId);
+
+  // 1. First try Vercel serverless /api/sources (extracts direct ad-free .m3u8 streams)
   try {
-    const query = new URLSearchParams({
-      title: params.title,
-      type: params.type,
-    });
-
-    if (params.originalTitle) query.set('originalTitle', params.originalTitle);
-    if (params.year) query.set('year', params.year.toString());
-    if (params.imdbId) query.set('imdbId', params.imdbId);
-    if (params.kinopoiskId) query.set('kinopoiskId', params.kinopoiskId);
-
-    const res = await fetch(`${API_BASE}/stream/extract?${query.toString()}`, {
-      signal: AbortSignal.timeout(3000),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.translations && data.translations.length > 0) {
-        return data;
+      const res = await fetch(`${API_BASE}/sources?${query.toString()}`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.translations && data.translations.length > 0) {
+          return data;
+        }
       }
+    } catch {
+      // Continue to next fallback
     }
-  } catch {
-    // Backend offline / running standalone on Vercel
-  }
+
+    // 1b. Try Render backend /api/stream/extract if available
+    try {
+      const res = await fetch(`${API_BASE}/stream/extract?${query.toString()}`, {
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.translations && data.translations.length > 0) {
+          return data;
+        }
+      }
+    } catch {
+      // Backend offline / running standalone on Vercel
+    }
 
   // 2. Direct Multi-Balancer Resolution (Collaps, Kodik, Delivembd, Multiembed)
   try {

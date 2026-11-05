@@ -246,16 +246,26 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
 
     if (details.type === 'movie' && activeTrans.qualities && activeTrans.qualities.length > 0) {
       qualities = activeTrans.qualities;
-    } else if (details.type === 'tv' && epObj.qualities && epObj.qualities.length > 0) {
-      qualities = epObj.qualities;
-    } else if (!embedUrl) {
+    } else if (details.type === 'tv') {
+      if (epObj.qualities && epObj.qualities.length > 0) {
+        qualities = epObj.qualities;
+      } else {
+        const transSeason = activeTrans.seasons?.find((s) => s.season === sNum);
+        const transEp = transSeason?.episodes?.find((e) => e.episode === epObj.episode);
+        if (transEp?.qualities && transEp.qualities.length > 0) {
+          qualities = transEp.qualities;
+        }
+      }
+    }
+
+    if (qualities.length === 0 && !embedUrl) {
       try {
         qualities = await getStreamQualities({
           provider: activeTrans.provider,
           translatorId: activeTrans.id,
           mediaId: activeTrans.rawMeta?.movieId || activeTrans.id,
-          season: details.type === 'tv' ? sNum : undefined,
-          episode: details.type === 'tv' ? epObj.episode : undefined,
+          season: (details.type as string) === 'tv' ? sNum : undefined,
+          episode: (details.type as string) === 'tv' ? epObj.episode : undefined,
         });
       } catch (err) {
         console.warn('Failed to get direct stream qualities:', err);
@@ -281,7 +291,7 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
           : [activeTrans],
       selectedTranslation: activeTrans,
       currentSeason: details.type === 'tv' ? sNum : undefined,
-      currentEpisode: details.type === 'tv' ? epObj : undefined,
+      currentEpisode: details.type === 'tv' ? { ...epObj, qualities } : undefined,
       initialTime: resumeTime,
     });
   };
