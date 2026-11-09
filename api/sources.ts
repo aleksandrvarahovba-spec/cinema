@@ -199,9 +199,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const embedLink = rawLink.startsWith('//') ? `https:${rawLink}` : rawLink;
             translations.push({
               id: `kodik_${idx}_${item.id || idx}`,
-              name: `Kodik: ${item.translation?.title || item.title || 'Сериал'}`,
+              name: `Kodik: ${cleanTranslationName(item.translation?.title || item.title || 'Сериал')}`,
               provider: 'kodik',
-              embedUrl: embedLink,
+              embedUrl: `/api/proxy-embed?url=${encodeURIComponent(embedLink)}`,
+              rawMeta: { originalEmbed: embedLink },
             });
           });
         }
@@ -211,16 +212,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // 3. Fallback Mirrors for manual backup
+  // 3. Fallback Mirrors for manual backup (Proxied with VAST/ad stripping)
   if (imdbId || kinopoiskId) {
     const delivembdBase = imdbId
       ? `https://api.delivembd.ws/embed/imdb/${imdbId}`
       : `https://api.delivembd.ws/embed/kp/${kinopoiskId}`;
     translations.push({
       id: 'delivembd_mirror',
-      name: 'Резервный плеер (Delivembd 1080p)',
+      name: 'Резервный плеер (Delivembd HD)',
       provider: 'delivembd',
-      embedUrl: delivembdBase,
+      embedUrl: `/api/proxy-embed?url=${encodeURIComponent(delivembdBase)}`,
+      rawMeta: { originalEmbed: delivembdBase },
     });
 
     const kinogramBase = imdbId
@@ -230,7 +232,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       id: 'kinogram_mirror',
       name: 'Плеер Kinogram (Full HD)',
       provider: 'kinogram',
-      embedUrl: kinogramBase,
+      embedUrl: `/api/proxy-embed?url=${encodeURIComponent(kinogramBase)}`,
+      rawMeta: { originalEmbed: kinogramBase },
     });
 
     if (imdbId) {
@@ -238,7 +241,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: 'multiembed_4k',
         name: 'Плеер 4K Ultra HD (Multiembed)',
         provider: 'multiembed',
-        embedUrl: `https://multiembed.mov/?video_id=${imdbId}`,
+        embedUrl: `/api/proxy-embed?url=${encodeURIComponent(`https://multiembed.mov/?video_id=${imdbId}`)}`,
       });
     }
   }

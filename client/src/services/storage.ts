@@ -1,11 +1,13 @@
 import { WatchProgress } from '../types/index.js';
 
 const STORAGE_KEYS = {
-  HISTORY: 'varahovba_cinema_history',
-  OLD_HISTORY: 'tizen_cinema_history',
-  FAVORITES: 'varahovba_cinema_favorites',
-  OLD_FAVORITES: 'tizen_cinema_favorites',
-  SETTINGS: 'varahovba_cinema_settings',
+  HISTORY: 'os_cinema_history',
+  OLD_HISTORY: 'varahovba_cinema_history',
+  LEGACY_HISTORY: 'tizen_cinema_history',
+  FAVORITES: 'os_cinema_favorites',
+  OLD_FAVORITES: 'varahovba_cinema_favorites',
+  LEGACY_FAVORITES: 'tizen_cinema_favorites',
+  SETTINGS: 'os_cinema_settings',
 };
 
 export const storage = {
@@ -13,7 +15,8 @@ export const storage = {
     try {
       const raw =
         localStorage.getItem(STORAGE_KEYS.HISTORY) ||
-        localStorage.getItem(STORAGE_KEYS.OLD_HISTORY);
+        localStorage.getItem(STORAGE_KEYS.OLD_HISTORY) ||
+        localStorage.getItem(STORAGE_KEYS.LEGACY_HISTORY);
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];
@@ -38,7 +41,10 @@ export const storage = {
 
   getFavorites(): number[] {
     try {
-      const raw = localStorage.getItem(STORAGE_KEYS.FAVORITES);
+      const raw =
+        localStorage.getItem(STORAGE_KEYS.FAVORITES) ||
+        localStorage.getItem(STORAGE_KEYS.OLD_FAVORITES) ||
+        localStorage.getItem(STORAGE_KEYS.LEGACY_FAVORITES);
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];

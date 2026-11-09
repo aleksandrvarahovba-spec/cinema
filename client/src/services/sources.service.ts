@@ -150,11 +150,17 @@ export async function resolveAllSources(params: {
     if (!translations.some((t) => t.id === 'collaps_tv_primary')) {
       translations.push({
         id: 'collaps_main',
-        name: 'Основной плеер (Collaps / Дубляж Full HD)',
+        name: 'Плеер 1 (Collaps Full HD)',
         provider: 'collaps',
         embedUrl: collapsEmbedBase,
       });
     }
+
+    // Wrap fallback embed players with the ad-stripping proxy
+    const wrapWithAdProxy = (embedUrl: string) => {
+      if (!embedUrl) return '';
+      return `/api/proxy-embed?url=${encodeURIComponent(embedUrl)}`;
+    };
 
     // Mirror 2: Delivembd
     const delivembdBase = imdbId
@@ -162,9 +168,9 @@ export async function resolveAllSources(params: {
       : `https://api.delivembd.ws/embed/kp/${kinopoiskId}`;
     translations.push({
       id: 'delivembd_mirror',
-      name: 'Резервный плеер (Delivembd 1080p)',
+      name: 'Плеер 2: Резерв (Delivembd 1080p)',
       provider: 'delivembd',
-      embedUrl: delivembdBase,
+      embedUrl: wrapWithAdProxy(delivembdBase),
     });
 
     // Mirror 3: Kinogram
@@ -173,18 +179,18 @@ export async function resolveAllSources(params: {
       : `https://api.kinogram.best/embed/kp/${kinopoiskId}`;
     translations.push({
       id: 'kinogram_mirror',
-      name: 'Плеер Kinogram (Full HD)',
+      name: 'Плеер 3: Резерв (Kinogram HD)',
       provider: 'kinogram',
-      embedUrl: kinogramBase,
+      embedUrl: wrapWithAdProxy(kinogramBase),
     });
 
     // Mirror 4: Multiembed 4K
     if (imdbId) {
       translations.push({
         id: 'multiembed_4k',
-        name: 'Плеер 4K Ultra HD (Multiembed)',
+        name: 'Плеер 4: 4K Ultra HD (Multiembed)',
         provider: 'multiembed',
-        embedUrl: `https://multiembed.mov/?video_id=${imdbId}`,
+        embedUrl: wrapWithAdProxy(`https://multiembed.mov/?video_id=${imdbId}`),
       });
     }
   }
@@ -213,7 +219,7 @@ export async function resolveAllSources(params: {
               id: `kodik_${idx}_${kItem.id || idx}`,
               name: `Kodik: ${transTitle}`,
               provider: 'kodik',
-              embedUrl: embedLink,
+              embedUrl: embedLink ? `/api/proxy-embed?url=${encodeURIComponent(embedLink)}` : '',
             });
           });
         }
@@ -223,38 +229,43 @@ export async function resolveAllSources(params: {
     console.warn('[SourcesService] Kodik search warning:', err);
   }
 
-  // 4. For TV series, if seasonsData is not loaded from Collaps, construct it from mediaItem metadata
+  // 4. For TV series, ensure all translations have strictly sorted seasons and episodes
   if (type === 'tv') {
-    const primaryTrans = translations[0];
-    if (primaryTrans && (!primaryTrans.seasons || primaryTrans.seasons.length === 0)) {
-      const numSeasons = mediaItem?.seasonsCount || mediaItem?.seasons?.length || 1;
-      const generatedSeasons: StreamSeason[] = [];
+    const numSeasons = mediaItem?.seasonsCount || mediaItem?.seasons?.length || 1;
+    const generatedSeasons: StreamSeason[] = [];
 
-      for (let s = 1; s <= numSeasons; s++) {
-        const metaSeason = mediaItem?.seasons?.find((item) => item.seasonNumber === s);
-        const epCount = metaSeason?.episodeCount || 10;
-        const eps: StreamEpisode[] = [];
-        for (let e = 1; e <= epCount; e++) {
-          eps.push({
-            id: `${s}_${e}`,
-            episode: e,
-            title: `Серия ${e}`,
-          });
-        }
-        generatedSeasons.push({
-          season: s,
-          episodes: eps,
+    for (let s = 1; s <= numSeasons; s++) {
+      const metaSeason = mediaItem?.seasons?.find((item) => item.seasonNumber === s);
+      const epCount = metaSeason?.episodeCount || 10;
+      const eps: StreamEpisode[] = [];
+      for (let e = 1; e <= epCount; e++) {
+        eps.push({
+          id: `${s}_${e}`,
+          episode: e,
+          title: `Серия ${e}`,
         });
       }
+      generatedSeasons.push({
+        season: s,
+        episodes: eps,
+      });
+    }
 
-      for (const t of translations) {
-        if (!t.seasons || t.seasons.length === 0) {
-          t.seasons = generatedSeasons;
-        } else {
-          t.seasons = [...t.seasons]
-            .filter((s) => !isNaN(Number(s.season)) && Number(s.season) > 0)
-            .sort((a, b) => Number(a.season) - Number(b.season));
-        }
+    for (const t of translations) {
+      if (!t.seasons || t.seasons.length === 0) {
+        t.seasons = generatedSeasons;
+      } else {
+        t.seasons = [...t.seasons]
+          .filter((s) => !isNaN(Number(s.season)) && Number(s.season) > 0)
+          .sort((a, b) => Number(a.season) - Number(b.season))
+          .map((s) => ({
+            ...s,
+            season: Number(s.season),
+            episodes: [...(s.episodes || [])]
+              .filter((ep) => !isNaN(Number(ep.episode)) && Number(ep.episode) > 0)
+              .sort((a, b) => Number(a.episode) - Number(b.episode))
+              .map((ep) => ({ ...ep, episode: Number(ep.episode) })),
+          }));
       }
     }
   }

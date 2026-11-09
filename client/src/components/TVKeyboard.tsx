@@ -57,12 +57,12 @@ const KeyboardKey: React.FC<{
       type="button"
       onClick={handleClick}
       onMouseEnter={() => spatialNav.setFocus(focusKey)}
-      className={`${width} h-10 rounded-lg btn-spring flex items-center justify-center font-bold text-xs select-none cursor-pointer transition-all duration-150 border box-border ${
+      className={`${width} h-10 rounded-xl flex items-center justify-center font-bold text-xs select-none cursor-pointer transition-all duration-150 border box-border outline-none ${
         isFocused
-          ? 'liquid-glass-active text-black scale-105 shadow-[0_0_16px_rgba(0,209,255,0.7)] z-10 font-black'
+          ? 'bg-white text-black font-black scale-105 shadow-[0_4px_16px_rgba(255,255,255,0.4)] z-10 border-white'
           : isSpecial
-          ? 'liquid-glass text-tv-cyan border-tv-cyan/30 hover:border-tv-cyan'
-          : 'bg-white/[0.06] hover:bg-white/[0.12] text-white border-white/10 hover:border-white/30'
+          ? 'bg-white/[0.12] text-white/90 border-white/20 hover:border-white/40 hover:bg-white/[0.18]'
+          : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/90 border-white/10 hover:border-white/25'
       }`}
     >
       {char}
@@ -80,7 +80,7 @@ export const TVKeyboard: React.FC<TVKeyboardProps> = ({
   const rows = layout === 'RU' ? RU_KEYS : EN_KEYS;
 
   return (
-    <div className="flex flex-col gap-2 p-3.5 liquid-glass rounded-2xl border border-white/20 shadow-2xl backdrop-blur-2xl w-full max-w-[480px] box-border select-none">
+    <div className="flex flex-col gap-2 p-3.5 rounded-[22px] bg-white/[0.05] border border-white/12 shadow-2xl backdrop-blur-2xl w-full max-w-[480px] box-border select-none">
       {/* Letter / Number Rows */}
       {rows.map((row, rIdx) => (
         <div key={rIdx} className="flex gap-1.5 w-full justify-between">

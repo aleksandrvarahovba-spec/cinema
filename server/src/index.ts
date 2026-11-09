@@ -26,7 +26,7 @@ async function main() {
   fastify.get('/health', async () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'varahovba-cinema-backend',
+    service: 'os-cinema-backend',
   }));
 
   // Register API modules
@@ -40,7 +40,7 @@ async function main() {
       port: config.port,
       host: config.host,
     });
-    console.log(`🚀 VARAHOVBA CINEMA Server listening at ${address}`);
+    console.log(`🚀 OS Cinema Server listening at ${address}`);
     console.log(`📺 Catalog API: ${address}/api/catalog`);
     console.log(`🎬 Stream API:  ${address}/api/stream`);
     console.log(`🔄 Proxy API:   ${address}/api/proxy`);

@@ -4,7 +4,6 @@ import {
   History,
   Home,
   Search,
-  Sparkles,
   Tv,
 } from 'lucide-react';
 import { spatialNav } from '../navigation/SpatialNavigation.js';
@@ -43,36 +42,27 @@ const SidebarItem: React.FC<{
       tabIndex={-1}
       onClick={onSelect}
       onMouseEnter={() => spatialNav.setFocus(`sidebar-${item.screen}`)}
-      className={`relative group flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer select-none transition-all duration-300 btn-spring ${
-        isFocused
-          ? 'liquid-glass-active text-white scale-[1.04] font-bold z-10'
-          : isActive
-          ? 'liquid-glass text-tv-cyan border-l-4 border-l-tv-cyan font-bold shadow-lg'
-          : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+      className={`relative group flex items-center gap-3.5 px-4 py-3 rounded-full cursor-pointer select-none transition-all duration-200 btn-spring ${
+        isActive
+          ? 'bg-white text-black font-semibold shadow-[0_6px_20px_rgba(255,255,255,0.25)] z-10'
+          : isFocused
+          ? 'bg-white/20 text-white font-semibold border-2 border-white/90 shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-[1.03] z-10'
+          : 'text-white/70 hover:text-white hover:bg-white/[0.08] border border-transparent'
       }`}
     >
-      {/* Specular sheen when focused/active */}
-      {(isFocused || isActive) && (
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 via-transparent to-transparent pointer-events-none" />
-      )}
-
       <div
-        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-          isFocused
-            ? 'bg-tv-cyan text-black shadow-lg shadow-tv-cyan/50'
-            : isActive
-            ? 'bg-tv-cyan/20 text-tv-cyan border border-tv-cyan/40'
-            : 'text-gray-400 group-hover:text-white'
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+          isActive
+            ? 'bg-black/10 text-black'
+            : isFocused
+            ? 'bg-white/20 text-white'
+            : 'text-white/60 group-hover:text-white'
         }`}
       >
-        <Icon size={20} className="flex-shrink-0" />
+        <Icon size={18} className="flex-shrink-0" />
       </div>
 
-      <span className="text-base font-semibold tracking-wide flex-1">{item.label}</span>
-
-      {isActive && (
-        <div className="w-1.5 h-1.5 rounded-full bg-tv-cyan shadow-[0_0_8px_#00d1ff] mr-1" />
-      )}
+      <span className="text-sm font-semibold tracking-wide flex-1">{item.label}</span>
     </div>
   );
 };
@@ -80,7 +70,7 @@ const SidebarItem: React.FC<{
 export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate }) => {
   return (
     <aside
-      className="w-[280px] min-w-[280px] max-w-[280px] flex-shrink-0 h-full liquid-glass border-r border-white/10 flex flex-col justify-between py-8 px-5 z-20 select-none relative box-border"
+      className="w-[280px] min-w-[280px] max-w-[280px] flex-shrink-0 h-full bg-[#08080a]/80 backdrop-blur-3xl border-r border-white/10 flex flex-col justify-between py-8 px-5 z-20 select-none relative box-border"
       style={{
         width: '280px',
         minWidth: '280px',
@@ -90,36 +80,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate }) =
         boxSizing: 'border-box',
       }}
     >
-      {/* Subtle ambient light inside sidebar */}
-      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-cyan-500/10 via-transparent to-transparent pointer-events-none rounded-tl-3xl" />
+      {/* Top subtle ambient highlight */}
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none rounded-tl-3xl" />
 
       <div>
-        {/* Brand Logo with Liquid Glass Specular Reflection */}
+        {/* Brand Logo in Apple TV+ / visionOS Minimalist Style */}
         <div className="flex items-center gap-3.5 px-2 mb-10 group cursor-default">
-          {/* Glass Icon with Specular Sheen */}
-          <div className="relative w-12 h-12 rounded-2xl p-[1px] bg-gradient-to-br from-cyan-300 via-indigo-500 to-fuchsia-500 shadow-xl shadow-cyan-500/20 flex-shrink-0">
-            <div className="w-full h-full rounded-[15px] bg-[#070b14]/90 backdrop-blur-md flex items-center justify-center overflow-hidden relative">
-              {/* Glass reflection gradient */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/30 via-transparent to-transparent pointer-events-none" />
-              <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-cyan-400/30 blur-sm pointer-events-none" />
-              <Sparkles className="text-tv-cyan relative z-10 animate-pulse" size={24} />
-            </div>
+          <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-b from-white/25 via-white/10 to-white/5 border border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.5)] flex items-center justify-center flex-shrink-0 backdrop-blur-md">
+            <span className="font-extrabold text-base tracking-tighter text-white drop-shadow">OS</span>
           </div>
 
           <div className="flex flex-col">
-            <h1 className="font-black text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 drop-shadow-md">
-              VARAHOVBA
+            <h1 className="font-bold text-xl tracking-tight text-white leading-tight flex items-center gap-1.5">
+              <span>OS</span>
+              <span className="font-light text-white/75">Cinema</span>
             </h1>
-            <p className="text-[10px] text-tv-cyan/90 uppercase tracking-[0.22em] font-extrabold flex items-center gap-1.5 mt-0.5">
-              <span>CINEMA</span>
-              <span className="w-1 h-1 rounded-full bg-tv-cyan" />
-              <span className="text-gray-400 font-semibold">4K ULTRA HD</span>
+            <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-semibold mt-0.5">
+              tvOS • 4K HDR
             </p>
           </div>
         </div>
 
         {/* Menu Navigation */}
-        <nav className="flex flex-col gap-3">
+        <nav className="flex flex-col gap-2.5">
           {NAV_ITEMS.map((item) => (
             <SidebarItem
               key={item.screen}
@@ -134,13 +117,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentScreen, onNavigate }) =
       {/* Footer Branding Badge */}
       <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-white tracking-wide">VARAHOVBA OS</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-tv-cyan font-bold border border-cyan-500/30">
-            v2.0
+          <span className="text-xs font-semibold text-white tracking-wide">OS Cinema</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90 font-semibold border border-white/20">
+            tvOS 18
           </span>
         </div>
-        <p className="text-[10px] text-gray-400 font-medium">
-          Apple Liquid Glass • Tizen 3.0
+        <p className="text-[10px] text-white/45 font-medium">
+          Apple TV+ Experience • Dolby Vision
         </p>
       </div>
     </aside>

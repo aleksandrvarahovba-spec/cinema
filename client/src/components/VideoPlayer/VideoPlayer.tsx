@@ -675,51 +675,51 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const bufferPercent = duration > 0 ? (buffered / duration) * 100 : 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex items-center justify-center overflow-hidden select-none">
+    <div className="fixed inset-0 z-50 bg-[#000000] flex items-center justify-center overflow-hidden select-none">
       {currentEmbedUrl ? (
-        <div className="relative w-full h-full bg-black flex flex-col">
-          {/* Top Liquid Glass Navigation Header */}
-          <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between p-6 lg:p-8 bg-gradient-to-b from-black/95 via-black/50 to-transparent pointer-events-auto">
+        <div className="relative w-full h-full bg-[#000000] flex flex-col">
+          {/* Top Apple Glass Navigation Header */}
+          <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between p-6 lg:p-8 bg-gradient-to-b from-black/95 via-black/60 to-transparent pointer-events-auto">
             <div className="flex items-center gap-4">
               <button
                 onClick={onClose}
-                className="liquid-glass-btn btn-spring flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-white text-sm font-bold shadow-xl cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.1] hover:bg-white/[0.2] border border-white/15 text-white text-sm font-semibold shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95"
               >
                 <ArrowLeft size={18} />
                 <span>Назад (ESC)</span>
               </button>
               <div>
-                <h2 className="text-xl font-black text-white drop-shadow-md">{media.title}</h2>
-                <div className="flex items-center gap-2.5 mt-1">
-                  <span className="liquid-glass px-3 py-1 rounded-xl text-tv-cyan font-bold text-xs border border-tv-cyan/30">
+                <h2 className="text-xl font-bold text-white drop-shadow-md">{media.title}</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="px-3 py-0.5 rounded-full bg-white/[0.08] text-white/80 font-medium text-xs border border-white/12">
                     {activeTranslation.name}
                   </span>
                   {currentSeason && currentEpisode && (
-                    <span className="liquid-glass-accent px-2.5 py-0.5 rounded-lg text-black font-black text-xs">
+                    <span className="px-2.5 py-0.5 rounded-full bg-white text-black font-bold text-xs">
                       S{currentSeason} • E{currentEpisode.episode}
                     </span>
                   )}
-                  <span className="liquid-glass px-2.5 py-0.5 rounded-lg text-yellow-300 font-black text-xs border border-yellow-400/30">
-                    Full HD 1080p
+                  <span className="px-2.5 py-0.5 rounded-full bg-black/60 text-yellow-300 font-bold text-xs border border-white/10">
+                    Full HD
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Quick Source Switcher Carousel */}
+            {/* Quick Source Switcher Carousel in Apple Capsule Style */}
             {translations.length > 1 && (
-              <div className="liquid-glass p-1.5 rounded-2xl flex items-center gap-2 border border-white/10 max-w-xl overflow-x-auto scrollbar-none">
-                {translations.map((t) => (
+              <div className="p-1 rounded-full bg-white/[0.08] border border-white/12 flex items-center gap-1.5 max-w-xl overflow-x-auto scrollbar-none shadow-xl">
+                {translations.map((t, idx) => (
                   <button
                     key={t.id}
                     onClick={() => handleTranslationSelect(t)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap btn-spring cursor-pointer ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                       t.id === activeTranslation.id
-                        ? 'liquid-glass-accent text-black font-black shadow-lg scale-102'
-                        : 'liquid-glass-btn text-gray-300 hover:text-white'
+                        ? 'bg-white text-black font-bold shadow-md scale-102'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
                     }`}
                   >
-                    {t.name}
+                    Плеер {idx + 1}: {t.name.split('(')[0].trim() || t.provider}
                   </button>
                 ))}
               </div>
@@ -759,8 +759,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Failover Toast Notification */}
       {failoverToast && (
         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 animate-fadeIn pointer-events-none">
-          <div className="liquid-glass px-6 py-3 rounded-2xl border border-tv-cyan/50 shadow-[0_0_25px_rgba(0,210,255,0.4)] flex items-center gap-3 text-white text-sm font-black">
-            <Sparkles size={18} className="text-tv-cyan animate-pulse" />
+          <div className="px-6 py-3 rounded-full bg-white/[0.12] backdrop-blur-2xl border border-white/20 shadow-2xl flex items-center gap-3 text-white text-sm font-semibold">
+            <Sparkles size={16} className="text-white/80 animate-pulse" />
             <span>{failoverToast}</span>
           </div>
         </div>
@@ -768,13 +768,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       {/* Direct Play Button (Unlocks Smart TV Autoplay & AudioContext after 3s stall) */}
       {showDirectPlay && !showSettings && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/65 backdrop-blur-md animate-fadeIn">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fadeIn">
           <button
             onClick={handleDirectPlay}
-            className="px-10 py-5 rounded-3xl liquid-glass-accent text-white font-black text-2xl flex items-center gap-4 shadow-[0_0_40px_rgba(229,9,20,0.6)] cursor-pointer hover:scale-105 active:scale-95 transition-all outline-none border-2 border-white/30 hover:border-tv-cyan"
+            className="px-10 py-4 rounded-full bg-white text-black font-bold text-xl flex items-center gap-3 shadow-[0_10px_35px_rgba(255,255,255,0.3)] cursor-pointer hover:scale-105 active:scale-95 transition-all outline-none"
             autoFocus
           >
-            <Play size={32} fill="currentColor" />
+            <Play size={24} fill="currentColor" />
             <span>Смотреть</span>
           </button>
         </div>
@@ -783,17 +783,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Loading Spinner */}
       {isLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/65 backdrop-blur-2xl z-30 pointer-events-none">
-          <div className="liquid-glass p-8 rounded-3xl border border-white/20 shadow-liquidGlass flex flex-col items-center gap-4">
+          <div className="p-8 rounded-[28px] bg-white/[0.05] border border-white/15 shadow-2xl flex flex-col items-center gap-4">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-tv-cyan/30 border-t-tv-cyan rounded-full animate-spin"></div>
-              <Sparkles size={20} className="absolute inset-0 m-auto text-tv-cyan animate-pulse" />
+              <div className="w-14 h-14 border-3 border-white/20 border-t-white rounded-full animate-spin"></div>
+              <Sparkles size={18} className="absolute inset-0 m-auto text-white/60" />
             </div>
             <div className="text-center">
-              <div className="text-white font-black text-lg tracking-wider drop-shadow-md">
-                Загрузка фильма...
+              <div className="text-white font-bold text-base tracking-wide">
+                Загрузка потока...
               </div>
-              <div className="text-xs text-tv-cyan font-bold tracking-widest uppercase mt-1">
-                VARAHOVBA CINEMA 4K
+              <div className="text-xs text-white/50 font-semibold tracking-widest uppercase mt-1">
+                OS CINEMA
               </div>
             </div>
           </div>
@@ -802,41 +802,60 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       {/* OSD Overlay */}
       {showOSD && !showSettings && (
-        <div className="absolute inset-0 z-20 flex flex-col justify-between p-12 bg-gradient-to-t from-black/95 via-black/20 to-black/85 transition-opacity duration-300">
-          {/* Top Bar: Title, Back button & Remote Key Hints */}
-          <div className="flex items-center justify-between">
+        <div className="absolute inset-0 z-20 flex flex-col justify-between p-10 lg:p-12 bg-gradient-to-t from-black/95 via-transparent to-black/85 transition-opacity duration-300 pointer-events-none">
+          {/* Top Bar: Title, Back button, Quick Switcher & Hints */}
+          <div className="flex items-center justify-between pointer-events-auto">
             <div className="flex items-center gap-5">
               <button
                 onClick={onClose}
-                className="liquid-glass-btn btn-spring flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-white text-sm font-bold cursor-pointer transition-all shadow-xl"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.1] hover:bg-white/[0.2] border border-white/15 text-white text-sm font-semibold shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95"
               >
                 <ArrowLeft size={18} />
                 <span>Назад (ESC)</span>
               </button>
               <div>
-                <h2 className="text-2xl font-black text-white drop-shadow-md tracking-tight">{media.title}</h2>
-                <div className="flex items-center gap-3 text-sm text-tv-muted font-semibold mt-1">
+                <h2 className="text-2xl font-bold text-white drop-shadow-md tracking-tight">{media.title}</h2>
+                <div className="flex items-center gap-2.5 text-sm text-white/60 font-medium mt-1">
                   {currentSeason && currentEpisode && (
-                    <span className="px-3 py-1 rounded-xl liquid-glass-accent text-black font-black text-xs uppercase tracking-wider">
+                    <span className="px-2.5 py-0.5 rounded-full bg-white text-black font-bold text-xs uppercase tracking-wider">
                       S{currentSeason} • E{currentEpisode.episode}: {currentEpisode.title}
                     </span>
                   )}
-                  <span className="liquid-glass px-3 py-1 rounded-xl text-white text-xs font-semibold border border-white/10">
-                    Озвучка: <span className="text-tv-cyan font-bold">{activeTranslation.name}</span>
+                  <span className="px-3 py-0.5 rounded-full bg-white/[0.08] text-white text-xs font-semibold border border-white/10">
+                    Озвучка: <span className="text-white font-bold">{activeTranslation.name}</span>
                   </span>
-                  <span className="liquid-glass px-3 py-1 rounded-xl text-yellow-300 text-xs font-black border border-yellow-400/30">
+                  <span className="px-2.5 py-0.5 rounded-full bg-black/60 text-yellow-300 text-xs font-bold border border-white/10">
                     {activeQuality}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="liquid-glass flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-white/20 text-xs font-black tracking-wider text-tv-cyan shadow-lg">
-                <Sparkles size={14} className="text-tv-cyan animate-pulse" />
-                <span>VARAHOVBA CINEMA</span>
+            {/* Quick Source Switcher Carousel in Apple Style */}
+            {translations.length > 1 && (
+              <div className="p-1 rounded-full bg-white/[0.08] border border-white/12 flex items-center gap-1.5 max-w-md overflow-x-auto scrollbar-none shadow-xl">
+                {translations.map((t, idx) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleTranslationSelect(t)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                      t.id === activeTranslation.id
+                        ? 'bg-white text-black font-bold shadow-md scale-102'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Плеер {idx + 1}: {t.name.split('(')[0].trim() || t.provider}
+                  </button>
+                ))}
               </div>
-              <div className="liquid-glass flex items-center gap-4 text-xs font-semibold text-gray-300 px-5 py-2.5 rounded-2xl border border-white/10 shadow-xl">
+            )}
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.08] border border-white/15 text-xs font-bold tracking-wider text-white shadow-lg">
+                <Sparkles size={13} className="text-white/70" />
+                <span>OS CINEMA</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-medium text-white/60 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10">
                 <span>▲ Настройки</span>
                 <span>◄ / ► 15 сек</span>
                 <span>⏎ Пауза</span>
@@ -846,17 +865,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
 
           {/* Bottom Bar: Timeline Progress & Controls */}
-          <div className="flex flex-col gap-4">
-            {/* Timeline Progress Bar */}
-            <div className="relative w-full h-3.5 liquid-glass rounded-full overflow-hidden shadow-inner cursor-pointer border border-white/10">
+          <div className="flex flex-col gap-4 pointer-events-auto">
+            {/* Timeline Progress Bar in Apple Minimal White Style */}
+            <div className="relative w-full h-2 bg-white/20 rounded-full overflow-hidden shadow-inner cursor-pointer">
               {/* Buffer Bar */}
               <div
-                className="absolute top-0 left-0 h-full bg-white/20 transition-all duration-300"
+                className="absolute top-0 left-0 h-full bg-white/30 transition-all duration-300"
                 style={{ width: `${bufferPercent}%` }}
               />
               {/* Played Bar */}
               <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-tv-cyan to-tv-cyanGlow transition-all duration-150 shadow-[0_0_15px_rgba(0,210,255,0.7)]"
+                className="absolute top-0 left-0 h-full bg-white transition-all duration-150"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -877,7 +896,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     }
                     resetOsdTimer();
                   }}
-                  className="liquid-glass-accent btn-spring w-12 h-12 rounded-full text-black flex items-center justify-center cursor-pointer shadow-[0_0_25px_rgba(0,210,255,0.5)] transition-transform"
+                  className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center cursor-pointer shadow-xl hover:scale-105 active:scale-95 transition-transform"
                 >
                   {isPlaying ? (
                     <Pause size={20} fill="currentColor" />
@@ -885,20 +904,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     <Play fill="currentColor" size={20} className="ml-0.5" />
                   )}
                 </button>
-                <div className="liquid-glass px-4 py-2 rounded-xl flex items-center gap-2 text-white font-mono text-sm border border-white/10">
-                  <span className="text-tv-cyan font-bold">{formatTime(currentTime)}</span>
-                  <span className="text-gray-500">/</span>
-                  <span className="text-gray-400">{formatTime(duration)}</span>
+                <div className="px-4 py-1.5 rounded-full bg-white/[0.08] flex items-center gap-2 text-white font-mono text-xs border border-white/10">
+                  <span className="text-white font-bold">{formatTime(currentTime)}</span>
+                  <span className="text-white/30">/</span>
+                  <span className="text-white/60">{formatTime(duration)}</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {onNextEpisode && (
                   <button
                     onClick={onNextEpisode}
-                    className="liquid-glass-btn btn-spring flex items-center gap-2 px-5 py-2.5 rounded-2xl text-white text-sm font-bold cursor-pointer shadow-md"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.18] border border-white/15 text-white text-sm font-semibold cursor-pointer shadow-md transition-all"
                   >
-                    <SkipForward size={18} />
+                    <SkipForward size={16} />
                     <span>Следующая серия</span>
                   </button>
                 )}
@@ -909,9 +928,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     setFocusArea('list');
                     setFocusedIndex(0);
                   }}
-                  className="liquid-glass-btn btn-spring flex items-center gap-2.5 px-6 py-2.5 rounded-2xl text-tv-cyan hover:text-white border border-tv-cyan/40 hover:border-tv-cyan text-sm font-black cursor-pointer shadow-lg transition-all"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.18] border border-white/15 text-white text-sm font-semibold cursor-pointer shadow-lg transition-all"
                 >
-                  <Settings size={18} />
+                  <Settings size={16} />
                   <span>Качество и звук (▲)</span>
                 </button>
               </div>
@@ -923,18 +942,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* In-Player Settings Modal (Audio & Quality) - z-50 overlay */}
       {showSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-2xl p-8 animate-fadeIn">
-          <div className="w-[700px] liquid-glass border border-white/20 rounded-3xl p-8 shadow-liquidGlass flex flex-col gap-6">
+          <div className="w-[640px] bg-[#121216]/95 border border-white/15 rounded-[30px] p-8 shadow-2xl flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
-                <h3 className="text-2xl font-black text-white flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl liquid-glass flex items-center justify-center text-tv-cyan shadow-sm">
-                    <Settings size={22} />
+                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white shadow-sm">
+                    <Settings size={20} />
                   </div>
                   <span>Параметры воспроизведения</span>
                 </h3>
-                <p className="text-xs text-tv-cyan/80 font-bold uppercase tracking-widest mt-1 ml-13">
-                  VARAHOVBA CINEMA ENGINE
+                <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mt-1 ml-13">
+                  OS CINEMA ENGINE
                 </p>
               </div>
               <button
@@ -942,24 +961,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   setShowSettings(false);
                   resetOsdTimer();
                 }}
-                className="liquid-glass-btn btn-spring flex items-center gap-1.5 px-4 py-2 rounded-xl text-gray-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.18] border border-white/12 text-white/70 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={15} />
                 <span>Закрыть (ESC)</span>
               </button>
             </div>
 
-            {/* Tab switchers: Left/Right to change tab */}
-            <div className="flex gap-3 p-1.5 liquid-glass rounded-2xl border border-white/10">
+            {/* Tab switchers in Apple Capsule Style */}
+            <div className="flex gap-2 p-1.5 rounded-full bg-white/[0.06] border border-white/10">
               <button
                 onClick={() => {
                   setSettingsTab('quality');
                   setFocusedIndex(0);
                 }}
-                className={`flex-1 py-3.5 rounded-xl font-black text-sm btn-spring transition-all cursor-pointer ${
+                className={`flex-1 py-2.5 rounded-full font-bold text-sm transition-all cursor-pointer ${
                   settingsTab === 'quality'
-                    ? 'liquid-glass-accent text-black shadow-lg'
-                    : 'liquid-glass-btn text-gray-400 hover:text-white'
+                    ? 'bg-white text-black shadow-md'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 Качество видео ({activeQuality})
@@ -969,10 +988,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   setSettingsTab('voiceover');
                   setFocusedIndex(0);
                 }}
-                className={`flex-1 py-3.5 rounded-xl font-black text-sm btn-spring transition-all cursor-pointer ${
+                className={`flex-1 py-2.5 rounded-full font-bold text-sm transition-all cursor-pointer ${
                   settingsTab === 'voiceover'
-                    ? 'liquid-glass-accent text-black shadow-lg'
-                    : 'liquid-glass-btn text-gray-400 hover:text-white'
+                    ? 'bg-white text-black shadow-md'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 Озвучка ({activeTranslation.name})
@@ -981,7 +1000,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
             {/* Quality List */}
             {settingsTab === 'quality' && (
-              <div className="flex flex-col gap-2.5 max-h-[340px] overflow-y-auto pr-2 tv-scroll">
+              <div className="flex flex-col gap-2 max-h-[320px] overflow-y-auto pr-2 tv-scroll">
                 {qualities.map((q, idx) => {
                   const isSelected = q.quality === activeQuality;
                   const isFocused = focusedIndex === idx;
@@ -990,20 +1009,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       key={q.quality}
                       onClick={() => handleQualitySelect(q)}
                       onMouseEnter={() => setFocusedIndex(idx)}
-                      className={`btn-spring py-3.5 px-5 rounded-2xl text-left font-bold text-base flex items-center justify-between transition-all cursor-pointer ${
+                      className={`py-3 px-5 rounded-2xl text-left font-semibold text-sm flex items-center justify-between transition-all cursor-pointer border ${
                         isSelected
-                          ? 'liquid-glass-accent text-black font-black shadow-[0_0_25px_rgba(0,210,255,0.4)] scale-[1.02]'
+                          ? 'bg-white text-black font-bold shadow-md border-white'
                           : isFocused
-                          ? 'liquid-glass-btn text-white border-tv-cyan ring-2 ring-tv-cyan/60 scale-[1.01]'
-                          : 'liquid-glass-btn text-gray-200'
+                          ? 'bg-white/[0.18] text-white border-white/60 scale-[1.01]'
+                          : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/90 border-white/10'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-lg">
+                        <span className="text-base">
                           {q.quality === 'Auto' ? '⚡ Автоматическое (HLS Auto)' : q.quality}
                         </span>
                       </div>
-                      {isSelected && <Check size={20} className="stroke-[3]" />}
+                      {isSelected && <Check size={18} className="stroke-[3]" />}
                     </button>
                   );
                 })}
@@ -1012,7 +1031,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
             {/* Voiceover List */}
             {settingsTab === 'voiceover' && (
-              <div className="flex flex-col gap-2.5 max-h-[340px] overflow-y-auto pr-2 tv-scroll">
+              <div className="flex flex-col gap-2 max-h-[320px] overflow-y-auto pr-2 tv-scroll">
                 {translations.map((t, idx) => {
                   const isSelected = t.id === activeTranslation.id;
                   const isFocused = focusedIndex === idx;
@@ -1021,21 +1040,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       key={t.id}
                       onClick={() => handleTranslationSelect(t)}
                       onMouseEnter={() => setFocusedIndex(idx)}
-                      className={`btn-spring py-3.5 px-5 rounded-2xl text-left font-bold text-base flex items-center justify-between transition-all cursor-pointer ${
+                      className={`py-3 px-5 rounded-2xl text-left font-semibold text-sm flex items-center justify-between transition-all cursor-pointer border ${
                         isSelected
-                          ? 'liquid-glass-accent text-black font-black shadow-[0_0_25px_rgba(0,210,255,0.4)] scale-[1.02]'
+                          ? 'bg-white text-black font-bold shadow-md border-white'
                           : isFocused
-                          ? 'liquid-glass-btn text-white border-tv-cyan ring-2 ring-tv-cyan/60 scale-[1.01]'
-                          : 'liquid-glass-btn text-gray-200'
+                          ? 'bg-white/[0.18] text-white border-white/60 scale-[1.01]'
+                          : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/90 border-white/10'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-xs px-2.5 py-1 rounded-lg bg-black/40 text-gray-300 uppercase font-black tracking-wider border border-white/10">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${
+                          isSelected ? 'bg-black/15 text-black border-black/20' : 'bg-white/10 text-white/70 border-white/10'
+                        }`}>
                           {t.provider}
                         </span>
                         <span>{t.name}</span>
                       </div>
-                      {isSelected && <Check size={20} className="stroke-[3]" />}
+                      {isSelected && <Check size={18} className="stroke-[3]" />}
                     </button>
                   );
                 })}
@@ -1043,7 +1064,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
 
             {/* Remote Navigation Hint */}
-            <div className="flex items-center justify-between text-xs font-semibold text-gray-400 border-t border-white/10 pt-4">
+            <div className="flex items-center justify-between text-xs font-medium text-white/50 border-t border-white/10 pt-4">
               <span>◄ / ► Переключение вкладки</span>
               <span>▲ / ▼ Выбор</span>
               <span>⏎ Применить</span>

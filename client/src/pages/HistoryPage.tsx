@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Play, Sparkles, Trash2 } from 'lucide-react';
+import { Play, Trash2 } from 'lucide-react';
 import { storage } from '../services/storage.js';
 import { MediaItem, WatchProgress } from '../types/index.js';
 
@@ -15,16 +15,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [history, setHistory] = useState<WatchProgress[]>(() => storage.getHistory());
 
   const handleClearAll = () => {
+    localStorage.removeItem('os_cinema_history');
     localStorage.removeItem('varahovba_cinema_history');
     localStorage.removeItem('tizen_cinema_history');
     setHistory([]);
-  };
-
-  const handleRemoveItem = (mediaId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const updated = history.filter((i) => i.mediaId !== mediaId);
-    localStorage.setItem('varahovba_cinema_history', JSON.stringify(updated));
-    setHistory(updated);
   };
 
   return (
@@ -32,12 +26,12 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-2 h-7 rounded-full bg-tv-cyan shadow-[0_0_10px_#00d1ff]" />
-            <h1 className="text-3xl lg:text-4xl font-black text-white tracking-wide">
+            <div className="w-1 h-6 rounded-full bg-white/70" />
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-wide">
               История просмотров
             </h1>
           </div>
-          <p className="text-sm text-tv-muted mt-1.5 font-medium ml-5">
+          <p className="text-sm text-white/50 mt-1.5 font-medium ml-4">
             Продолжайте просмотр фильмов и сериалов с сохраненного таймкода
           </p>
         </div>
@@ -45,7 +39,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         {history.length > 0 && (
           <button
             onClick={handleClearAll}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-red-950/60 hover:bg-red-900 border border-red-800/80 text-red-200 text-sm font-bold transition-all cursor-pointer shadow-lg hover:scale-105 btn-spring"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-950/40 hover:bg-red-900/60 border border-red-800/50 text-red-300 text-sm font-semibold transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95"
           >
             <Trash2 size={16} />
             <span>Очистить историю</span>
@@ -76,10 +70,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     year: null,
                   })
                 }
-                className="stagger-card movie-card group relative rounded-[20px] overflow-hidden cursor-pointer hover:scale-[1.04] transition-all duration-300 shadow-xl border-2 border-white/10 hover:border-tv-cyan hover:shadow-[0_0_25px_rgba(0,210,255,0.45)]"
+                className="stagger-card movie-card group relative rounded-[18px] overflow-hidden cursor-pointer hover:scale-[1.03] transition-all duration-300 shadow-xl border border-white/10 hover:border-white/90 hover:shadow-[0_14px_36px_rgba(0,0,0,0.75),0_0_20px_rgba(255,255,255,0.25)] bg-[#101014]"
               >
                 {/* Poster / Thumbnail */}
-                <div className="relative aspect-video bg-[#0a0f1d] overflow-hidden">
+                <div className="relative aspect-video bg-[#141418] overflow-hidden">
                   {item.poster ? (
                     <img
                       src={item.poster}
@@ -87,43 +81,32 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-xs text-white/40 font-medium">
                       {item.title}
                     </div>
                   )}
 
-                  {/* Play overlay button */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 to-tv-cyan text-black flex items-center justify-center shadow-2xl shadow-cyan-500/50">
-                      <Play fill="currentColor" size={22} className="ml-0.5" />
+                  {/* Play overlay button in Apple pure white */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-2xl">
+                      <Play fill="currentColor" size={20} className="ml-0.5" />
                     </div>
                   </div>
 
-                  {/* Remove Button */}
-                  <button
-                    onClick={(e) => handleRemoveItem(item.mediaId, e)}
-                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all border border-white/20 shadow-md"
-                    title="Удалить из истории"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-
-                  {/* Progress bar */}
-                  <div className="absolute bottom-0 left-0 w-full h-2 bg-black/60">
+                  {/* Clean White Progress Bar */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-black/60">
                     <div
-                      className="h-full bg-gradient-to-r from-cyan-400 to-tv-cyan shadow-[0_0_8px_#00d1ff]"
+                      className="h-full bg-white transition-all duration-300"
                       style={{ width: `${percent}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="p-4">
-                  <h4 className="font-black text-sm text-white truncate drop-shadow-sm">
-                    {item.title}
-                  </h4>
-                  <div className="flex justify-between items-center text-xs text-tv-muted mt-1.5 font-semibold">
-                    <span>{item.season ? `S${item.season} • E${item.episode}` : 'Фильм'}</span>
-                    <span className="text-tv-cyan font-bold">{percent}%</span>
+                <div className="p-3.5">
+                  <h5 className="font-semibold text-sm text-white truncate">{item.title}</h5>
+                  <div className="flex justify-between items-center text-xs text-white/50 mt-1 font-medium">
+                    <span>{item.season ? `S${item.season}:E${item.episode}` : 'Фильм'}</span>
+                    <span className="text-white font-semibold">{percent}%</span>
                   </div>
                 </div>
               </div>
@@ -131,11 +114,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           })}
         </div>
       ) : (
-        <div className="h-96 flex flex-col items-center justify-center gap-4 liquid-glass rounded-3xl p-10 border border-white/10 text-center">
-          <History className="text-tv-cyan/80" size={48} />
-          <span className="text-white font-extrabold text-xl">История просмотров пуста</span>
-          <span className="text-gray-400 text-sm max-w-md">
-            Фильмы и сериалы, которые вы начнете смотреть, автоматически появятся здесь с сохраненным таймкодом
+        <div className="h-80 flex flex-col items-center justify-center gap-3 bg-white/[0.04] rounded-[24px] p-8 border border-white/10 text-center">
+          <span className="text-white font-bold text-lg">История пуста</span>
+          <span className="text-white/50 text-sm max-w-sm">
+            Здесь будут отображаться фильмы и сериалы, которые вы начали смотреть
           </span>
         </div>
       )}
