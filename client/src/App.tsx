@@ -8,6 +8,7 @@ import { HistoryPage } from './pages/HistoryPage.js';
 import { HomePage } from './pages/HomePage.js';
 import { SearchPage } from './pages/SearchPage.js';
 import { extractStreams, getStreamQualities } from './services/api.js';
+import { storage } from './services/storage.js';
 import {
   MediaItem,
   ScreenType,
@@ -89,37 +90,46 @@ export const App: React.FC = () => {
       const translations = ext.translations;
       const defaultTrans = translations[0];
 
-      if (defaultTrans.embedUrl) {
-        setPlayerState({
-          media: item,
-          streamUrl: defaultTrans.embedUrl,
-          embedUrl: defaultTrans.embedUrl,
-          qualities: defaultTrans.qualities || [],
-          translations,
-          selectedTranslation: defaultTrans,
-          initialTime: resumeTime,
-        });
-        return;
+      let qualities: StreamQuality[] = [];
+      let currentSeason: number | undefined;
+      let currentEpisode: StreamEpisode | undefined;
+
+      // Extract direct .m3u8 qualities for movies or series
+      if (item.type === 'tv') {
+        const savedProgress = storage.getProgress(item.id);
+        const sNum = savedProgress?.season || 1;
+        const epNum = savedProgress?.episode || 1;
+        currentSeason = sNum;
+
+        const transSeason =
+          defaultTrans.seasons?.find((s) => s.season === sNum) ||
+          defaultTrans.seasons?.[0];
+        const transEp =
+          transSeason?.episodes?.find((e) => e.episode === epNum) ||
+          transSeason?.episodes?.[0];
+
+        if (transEp) {
+          currentEpisode = transEp;
+          if (transEp.qualities && transEp.qualities.length > 0) {
+            qualities = transEp.qualities;
+          }
+        }
+      } else if (defaultTrans.qualities && defaultTrans.qualities.length > 0) {
+        qualities = defaultTrans.qualities;
       }
 
-      let qualities: StreamQuality[] = [];
-      if (item.type === 'movie' && defaultTrans.qualities && defaultTrans.qualities.length > 0) {
-        qualities = defaultTrans.qualities;
-      } else {
+      if (qualities.length === 0 && !defaultTrans.embedUrl) {
         try {
           qualities = await getStreamQualities({
             provider: defaultTrans.provider,
             translatorId: defaultTrans.id,
             mediaId: defaultTrans.rawMeta?.movieId || defaultTrans.id,
+            season: item.type === 'tv' ? currentSeason : undefined,
+            episode: item.type === 'tv' ? currentEpisode?.episode : undefined,
           });
         } catch (err) {
           console.warn('Direct stream fetch failed:', err);
         }
-      }
-
-      if (!qualities || qualities.length === 0) {
-        setActiveMedia(item);
-        return;
       }
 
       const matchQ =
@@ -127,12 +137,19 @@ export const App: React.FC = () => {
         qualities.find((q: StreamQuality) => q.quality === '720p') ||
         qualities[0];
 
+      const streamUrl = matchQ?.proxiedUrl || matchQ?.url || defaultTrans.embedUrl || '';
+      // If direct stream qualities exist, embedUrl is undefined to guarantee 100% ad-free native video playback
+      const embedUrl = qualities.length > 0 ? undefined : defaultTrans.embedUrl;
+
       setPlayerState({
         media: item,
-        streamUrl: matchQ.proxiedUrl || matchQ.url,
+        streamUrl,
+        embedUrl,
         qualities,
         translations,
         selectedTranslation: defaultTrans,
+        currentSeason,
+        currentEpisode: currentEpisode ? { ...currentEpisode, qualities } : undefined,
         initialTime: resumeTime,
       });
     } catch (err) {

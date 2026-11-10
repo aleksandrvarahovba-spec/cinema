@@ -284,7 +284,7 @@ export const DetailsPage: React.FC<DetailsPageProps> = ({
     onPlay({
       media: details,
       streamUrl,
-      embedUrl,
+      embedUrl: qualities.length > 0 ? undefined : embedUrl,
       qualities,
       translations:
         extractions && extractions.translations.length > 0
